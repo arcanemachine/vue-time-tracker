@@ -35,19 +35,18 @@ body {
         <button id="timer__resume-button" @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
         <button id="timer__stop-button" @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
         <button id="timer__reset-button" @click="resetTimer()" :disabled="resetButtonDisabled">reset</button>
+        <button id="timer__toggle-debug" @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
       </div>
 
       <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
 
-      <div style="margin-top: 4em;">
-        <button id="timer__toggle-debug" @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
-      </div>
-
       <div v-show="showDebugInfo" style="margin-top: 2em;">
-        <p>runSeconds: <span id='run-seconds'></span></p>
         <p>startTime: <span id='start-time'></span></p>
         <p>stopTime: <span id='stop-time'></span></p>
         <p>lastUpdateTime: <span id='last-update-time'></span></p>
+        <p>runSeconds: <span id='run-seconds'></span></p>
+        <p>pauseSeconds: <span id='pause-seconds'></span></p>
+        <p>isRunning: <span id='is-running'></span></p>
         <button id="timer__update-time" @click="updateDisplay()">update timer</button></p>
       </div>
 
@@ -74,13 +73,12 @@ var app = new Vue({
 
     timer: {
       startTime: 0,
-    }
-
-    startTime: 0,
-    stopTime: 0,
-    lastUpdateTime: 0,
-    runSeconds: 0,
-    pauseSeconds: 0,
+      stopTime: 0,
+      lastUpdateTime: 0,
+      runSeconds: 0,
+      pauseSeconds: 0,
+      isRunning: false
+    },
 
     startButtonDisabled: false,
     pauseButtonDisabled: true,
@@ -88,7 +86,6 @@ var app = new Vue({
     stopButtonDisabled: true,
     resetButtonDisabled: true,
 
-    timerIsRunning: false,
     showDebugInfo: false,
   },
   computed: {
@@ -99,64 +96,64 @@ var app = new Vue({
   methods: {
     // timer logic
     startTimer: function () {
-      if (this.timerIsRunning) {return undefined;}
-      this.startTime = performance.now();
-      this.lastUpdateTime = this.startTime;
-      this.timerIsRunning = true;
+      if (this.timer.isRunning) {return undefined;}
+      this.timer.startTime = performance.now();
+      this.timer.lastUpdateTime = this.timer.startTime;
+      this.timer.isRunning = true;
 
       setInterval('app.updateDisplay()', 100);
       this.disableButtons(['start', 'resume', 'reset']);
     },
     pauseTimer: function () {
       if (this.timerIsStopped() || this.timerIsPaused()) {return undefined;}
-      this.runSeconds += this.getSecondsSinceLastUpdate();
-      this.timerIsRunning = false;
-      this.lastUpdateTime = performance.now();
+      this.timer.runSeconds += this.getSecondsSinceLastUpdate();
+      this.timer.isRunning = false;
+      this.timer.lastUpdateTime = performance.now();
 
       this.updateDisplay()
       this.disableButtons(['start', 'pause', 'reset']);
     },
     resumeTimer: function () {
-      if (this.timerIsRunning) {return false;}
+      if (this.timer.isRunning) {return false;}
       this.currentTime = performance.now()
       this.elapsedSeconds = this.getSecondsSinceLastUpdate();
-      this.lastUpdateTime = this.currentTime;
-      this.stopTime = 0;
-      this.timerIsRunning = true;
+      this.timer.lastUpdateTime = this.currentTime;
+      this.timer.stopTime = 0;
+      this.timer.isRunning = true;
 
       this.updateDisplay()
       this.disableButtons(['start', 'resume', 'reset']);
     },
     stopTimer: function () {
       if (this.timerIsStopped()) {return undefined;}
-      else if (this.timerIsPaused()) {this.pauseSeconds += this.getSecondsSinceLastUpdate();}
-      else if (this.timerIsRunning) {this.runSeconds += this.getSecondsSinceLastUpdate();}
-      this.stopTime = performance.now();
-      this.lastUpdateTime = this.stopTime;
-      this.timerIsRunning = false;
+      else if (this.timerIsPaused()) {this.timer.pauseSeconds += this.getSecondsSinceLastUpdate();}
+      else if (this.timer.isRunning) {this.timer.runSeconds += this.getSecondsSinceLastUpdate();}
+      this.timer.stopTime = performance.now();
+      this.timer.lastUpdateTime = this.timer.stopTime;
+      this.timer.isRunning = false;
 
       this.updateDisplay()
       this.disableButtons(['start', 'pause', 'stop']);
     },
     resetTimer: function () {
-      this.startTime = 0;
-      this.stopTime = 0;
-      this.lastUpdateTime = 0;
-      this.runSeconds = 0;
-      this.pauseSeconds = 0;
+      this.timer.startTime = 0;
+      this.timer.stopTime = 0;
+      this.timer.lastUpdateTime = 0;
+      this.timer.runSeconds = 0;
+      this.timer.pauseSeconds = 0;
 
       this.updateDisplay()
       this.disableButtons(['pause', 'resume', 'stop', 'reset']);
     },
     getSecondsSinceLastUpdate: function () {
-      return Math.floor((performance.now() - this.lastUpdateTime) / 1000);
+      return Math.floor((performance.now() - this.timer.lastUpdateTime) / 1000);
     },
     timerIsPaused: function () {
-      if (this.lastUpdateTime !== this.stopTime && !this.timerIsRunning) {return true;}
+      if (this.timer.lastUpdateTime !== this.timer.stopTime && !this.timer.isRunning) {return true;}
       else {return false;}
     },
     timerIsStopped: function () {
-      if (this.lastUpdateTime === this.stopTime && !this.timerIsRunning) {return true;}
+      if (this.timer.lastUpdateTime === this.timer.stopTime && !this.timer.isRunning) {return true;}
       else {return false;}
     },
     getUUID: function () {
@@ -180,8 +177,8 @@ var app = new Vue({
     },
     getFormattedTime: function () {
       // get elapsed time
-      if (this.timerIsRunning) {this.elapsedSeconds = this.getSecondsSinceLastUpdate() + this.runSeconds;}
-      else {this.elapsedSeconds = this.runSeconds;}
+      if (this.timer.isRunning) {this.elapsedSeconds = this.getSecondsSinceLastUpdate() + this.timer.runSeconds;}
+      else {this.elapsedSeconds = this.timer.runSeconds;}
 
       let seconds = this.elapsedSeconds % 60;
       let minutes = Math.floor((this.elapsedSeconds / 60) % 60);
@@ -192,12 +189,12 @@ var app = new Vue({
     updateDisplay: function () {
       displayTimer.innerHTML = this.getFormattedTime();
 
-      // deleteMe
-      document.getElementById('run-seconds').innerHTML = this.runSeconds;
-      document.getElementById('start-time').innerHTML = this.startTime;
-      document.getElementById('stop-time').innerHTML = this.stopTime;
-      document.getElementById('last-update-time').innerHTML = this.lastUpdateTime;
-      // deleteMe
+      document.getElementById('run-seconds').innerHTML = this.timer.runSeconds;
+      document.getElementById('pause-seconds').innerHTML = this.timer.pauseSeconds;
+      document.getElementById('start-time').innerHTML = this.timer.startTime;
+      document.getElementById('stop-time').innerHTML = this.timer.stopTime;
+      document.getElementById('last-update-time').innerHTML = this.timer.lastUpdateTime;
+      document.getElementById('is-running').innerHTML = this.timer.isRunning;
     },
     disableButtons: function (buttonsToDisable) {
       if (buttonsToDisable.includes('start')) {
