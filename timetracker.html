@@ -29,26 +29,8 @@ body {
 
     <div id="app">
 
-      <div>
-        <button id="timer__start-button" @click="startTimer()" :disabled="startButtonDisabled">start</button>
-        <button id="timer__pause-button" @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
-        <button id="timer__resume-button" @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
-        <button id="timer__stop-button" @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
-        <button id="timer__reset-button" @click="resetTimer()" :disabled="resetButtonDisabled">reset</button>
-        <button id="timer__toggle-debug" @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
-      </div>
-
-      <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
-
-      <div v-show="showDebugInfo" style="margin-top: 2em;">
-        <p>startTime: <span id='start-time'></span></p>
-        <p>stopTime: <span id='stop-time'></span></p>
-        <p>lastUpdateTime: <span id='last-update-time'></span></p>
-        <p>runSeconds: <span id='run-seconds'></span></p>
-        <p>pauseSeconds: <span id='pause-seconds'></span></p>
-        <p>isRunning: <span id='is-running'></span></p>
-        <button id="timer__update-time" @click="updateDisplay()">update timer</button></p>
-      </div>
+      <time-tracker></time-tracker>
+      <time-tracker></time-tracker>
 
     </div>
 
@@ -63,36 +45,58 @@ let resumeButton = document.getElementById('timer__resume-button');
 let stopButton = document.getElementById('timer__stop-button');
 let resetButton = document.getElementById('timer__reset-button');
 
-let displayTimer = document.getElementById('timer');
 
-var app = new Vue({
-  el: '#app',
-  data: {
-    currentTime: 0,
-    elapsedSeconds: 0,
+Vue.component('time-tracker', {
+  data: function () {
+    return {
+      currentTime: 0,
+      elapsedSeconds: 0,
+      polling: null,
+      formattedTimer: '00:00:00',
 
-    timer: {
-      startTime: 0,
-      stopTime: 0,
-      lastUpdateTime: 0,
-      runSeconds: 0,
-      pauseSeconds: 0,
-      isRunning: false
-    },
+      timer: {
+        startTime: 0,
+        stopTime: 0,
+        lastUpdateTime: 0,
+        runSeconds: 0,
+        pauseSeconds: 0,
+        isRunning: false
+      },
 
-    startButtonDisabled: false,
-    pauseButtonDisabled: true,
-    resumeButtonDisabled: true,
-    stopButtonDisabled: true,
-    resetButtonDisabled: true,
+      startButtonDisabled: false,
+      pauseButtonDisabled: true,
+      resumeButtonDisabled: true,
+      stopButtonDisabled: true,
+      resetButtonDisabled: true,
 
-    showDebugInfo: false,
+      showDebugInfo: false,
+    };
   },
-  computed: {
-    formattedTimer: function () {
-      return this.getFormattedTime();
-    }
-  },
+
+  template: `
+    <div class="timer" style="margin-bottom: 2em;">
+      <div id="timer-buttons">
+        <button id="timer__start-button" @click="startTimer()" :disabled="startButtonDisabled">start</button>
+        <button id="timer__pause-button" @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
+        <button id="timer__resume-button" @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
+        <button id="timer__stop-button" @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
+        <button id="timer__reset-button" @click="resetTimer()" :disabled="resetButtonDisabled">reset</button>
+        <button id="timer__toggle-debug" @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
+      </div>
+
+      <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
+
+      <div id="debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
+        <p>startTime: <span id='start-time'></span></p>
+        <p>stopTime: <span id='stop-time'></span></p>
+        <p>lastUpdateTime: <span id='last-update-time'></span></p>
+        <p>runSeconds: <span id='run-seconds'></span></p>
+        <p>pauseSeconds: <span id='pause-seconds'></span></p>
+        <p>isRunning: <span id='is-running'></span></p>
+        <button id="timer__update-time" @click="updateDisplay()">update timer</button></p>
+      </div>
+    </div>`,
+
   methods: {
     // timer logic
     startTimer: function () {
@@ -101,7 +105,8 @@ var app = new Vue({
       this.timer.lastUpdateTime = this.timer.startTime;
       this.timer.isRunning = true;
 
-      setInterval('app.updateDisplay()', 100);
+      // COPY THIS TO OTHER METHODS
+      this.polling = setInterval(() => {return this.updateDisplay()}, 200);
       this.disableButtons(['start', 'resume', 'reset']);
     },
     pauseTimer: function () {
@@ -109,6 +114,10 @@ var app = new Vue({
       this.timer.runSeconds += this.getSecondsSinceLastUpdate();
       this.timer.isRunning = false;
       this.timer.lastUpdateTime = performance.now();
+
+      // clear the timer method to prevent memory leaks
+      // COPY THIS TO OTHER METHODS
+      clearInterval(this.polling);
 
       this.updateDisplay()
       this.disableButtons(['start', 'pause', 'reset']);
@@ -187,8 +196,7 @@ var app = new Vue({
       return this.zeroPadder(hours) +':'+ this.zeroPadder(minutes) +':'+ this.zeroPadder(seconds);
     },
     updateDisplay: function () {
-      displayTimer.innerHTML = this.getFormattedTime();
-
+      this.formattedTimer = this.getFormattedTime();
       document.getElementById('run-seconds').innerHTML = this.timer.runSeconds;
       document.getElementById('pause-seconds').innerHTML = this.timer.pauseSeconds;
       document.getElementById('start-time').innerHTML = this.timer.startTime;
@@ -226,10 +234,9 @@ var app = new Vue({
   }
 });
 
-
-// view logic
-// displayTimer.innerHTML = app.getFormattedTime();
-// app.disableButtons(['pause', 'resume', 'stop', 'reset']);
+var app = new Vue({
+  el: '#app',
+})
 
   </script>
 
