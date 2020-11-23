@@ -3,12 +3,13 @@
 	<head>
     <meta charset="utf-8">
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-		<title>Vue - Tutorial</title>
+		<title>Vue - Time Tracker</title>
 
     <style>
 
 body {
   font-family: Helvetica;
+  margin: 2em;
 }
 
 .bold {
@@ -23,27 +24,31 @@ body {
     </style>
 
 	</head>
-	<body style="margin-left: 2em;">
-    <h1 style="margin-bottom: 1em;">JS Timer</h1>
+	<body>
+    <h1 style="text-align: center; margin-bottom: 1em;">Vue - Time Tracker</h1>
 
     <div id="app">
 
       <div>
-        <button id="timer__start-button" onclick="startTimer()">start</button>
-        <button id="timer__pause-button" onclick="pauseTimer()">pause</button>
-        <button id="timer__resume-button" onclick="resumeTimer()">resume</button>
-        <button id="timer__stop-button" onclick="stopTimer()">stop</button>
-        <button id="timer__reset-button" onclick="resetTimer()">reset</button>
-        <button id="timer__update-time" onclick="updateDisplay()">update timer</button>
+        <button id="timer__start-button" @click="startTimer()" :disabled="startButtonDisabled">start</button>
+        <button id="timer__pause-button" @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
+        <button id="timer__resume-button" @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
+        <button id="timer__stop-button" @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
+        <button id="timer__reset-button" @click="resetTimer()" :disabled="resetButtonDisabled">reset</button>
       </div>
 
-      <div id="timer" style="margin-top: 2em;"></div>
+      <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
 
-      <div id="stats" style="display: none; margin-top: 2em;">
+      <div style="margin-top: 4em;">
+        <button id="timer__toggle-debug" @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
+      </div>
+
+      <div v-show="showDebugInfo" style="margin-top: 2em;">
         <p>runSeconds: <span id='run-seconds'></span></p>
         <p>startTime: <span id='start-time'></span></p>
         <p>stopTime: <span id='stop-time'></span></p>
         <p>lastUpdateTime: <span id='last-update-time'></span></p>
+        <button id="timer__update-time" @click="updateDisplay()">update timer</button></p>
       </div>
 
     </div>
@@ -61,163 +66,173 @@ let resetButton = document.getElementById('timer__reset-button');
 
 let displayTimer = document.getElementById('timer');
 
-// initialize variables
+var app = new Vue({
+  el: '#app',
+  data: {
+    currentTime: 0,
+    elapsedSeconds: 0,
 
-let currentTime = 0;
-let elapsedSeconds = 0;
+    timer: {
+      startTime: 0,
+    }
 
-let startTime = 0;
-let stopTime = 0;
-let lastUpdateTime = 0;
-let runSeconds = 0;
-let pauseSeconds = 0;
+    startTime: 0,
+    stopTime: 0,
+    lastUpdateTime: 0,
+    runSeconds: 0,
+    pauseSeconds: 0,
 
-let timerIsRunning = false;
+    startButtonDisabled: false,
+    pauseButtonDisabled: true,
+    resumeButtonDisabled: true,
+    stopButtonDisabled: true,
+    resetButtonDisabled: true,
 
-// timer logic
-let startTimer = function () {
-  if (timerIsRunning) {return undefined;}
-  startTime = performance.now();
-  lastUpdateTime = startTime;
-  timerIsRunning = true;
+    timerIsRunning: false,
+    showDebugInfo: false,
+  },
+  computed: {
+    formattedTimer: function () {
+      return this.getFormattedTime();
+    }
+  },
+  methods: {
+    // timer logic
+    startTimer: function () {
+      if (this.timerIsRunning) {return undefined;}
+      this.startTime = performance.now();
+      this.lastUpdateTime = this.startTime;
+      this.timerIsRunning = true;
 
-  setInterval('updateDisplay()', 100);
-  disableButtons(['start', 'resume', 'reset']);
-};
+      setInterval('app.updateDisplay()', 100);
+      this.disableButtons(['start', 'resume', 'reset']);
+    },
+    pauseTimer: function () {
+      if (this.timerIsStopped() || this.timerIsPaused()) {return undefined;}
+      this.runSeconds += this.getSecondsSinceLastUpdate();
+      this.timerIsRunning = false;
+      this.lastUpdateTime = performance.now();
 
-let pauseTimer = function () {
-  if (timerIsStopped() || timerIsPaused()) {return undefined;}
-  runSeconds += getSecondsSinceLastUpdate();
-  timerIsRunning = false;
-  lastUpdateTime = performance.now();
+      this.updateDisplay()
+      this.disableButtons(['start', 'pause', 'reset']);
+    },
+    resumeTimer: function () {
+      if (this.timerIsRunning) {return false;}
+      this.currentTime = performance.now()
+      this.elapsedSeconds = this.getSecondsSinceLastUpdate();
+      this.lastUpdateTime = this.currentTime;
+      this.stopTime = 0;
+      this.timerIsRunning = true;
 
-  updateDisplay()
-  disableButtons(['start', 'pause', 'reset']);
-};
+      this.updateDisplay()
+      this.disableButtons(['start', 'resume', 'reset']);
+    },
+    stopTimer: function () {
+      if (this.timerIsStopped()) {return undefined;}
+      else if (this.timerIsPaused()) {this.pauseSeconds += this.getSecondsSinceLastUpdate();}
+      else if (this.timerIsRunning) {this.runSeconds += this.getSecondsSinceLastUpdate();}
+      this.stopTime = performance.now();
+      this.lastUpdateTime = this.stopTime;
+      this.timerIsRunning = false;
 
-let resumeTimer = function () {
-  if (timerIsRunning) {return false;}
-  currentTime = performance.now()
-  elapsedSeconds = getSecondsSinceLastUpdate();
-  lastUpdateTime = currentTime;
-  stopTime = 0;
-  timerIsRunning = true;
+      this.updateDisplay()
+      this.disableButtons(['start', 'pause', 'stop']);
+    },
+    resetTimer: function () {
+      this.startTime = 0;
+      this.stopTime = 0;
+      this.lastUpdateTime = 0;
+      this.runSeconds = 0;
+      this.pauseSeconds = 0;
 
-  updateDisplay()
-  disableButtons(['start', 'resume', 'reset']);
-};
+      this.updateDisplay()
+      this.disableButtons(['pause', 'resume', 'stop', 'reset']);
+    },
+    getSecondsSinceLastUpdate: function () {
+      return Math.floor((performance.now() - this.lastUpdateTime) / 1000);
+    },
+    timerIsPaused: function () {
+      if (this.lastUpdateTime !== this.stopTime && !this.timerIsRunning) {return true;}
+      else {return false;}
+    },
+    timerIsStopped: function () {
+      if (this.lastUpdateTime === this.stopTime && !this.timerIsRunning) {return true;}
+      else {return false;}
+    },
+    getUUID: function () {
+      return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+      );
+    },
+    // user interface
+    zeroPadder: function (yourNumber, minLength=2) {
+      // get the minimum length of the result
+      let sliceLength = minLength;
+      let numLength = String(yourNumber).length;
+      if (numLength > minLength) {sliceLength = numLength;}
+      
+      // create a string of zeroes
+      let zeroString = '';
+      for (let i = 0; i < sliceLength; i++) {zeroString += '0';}
+      
+      // return a string that is at least the length of minLength
+      return (zeroString + String(yourNumber)).slice(numLength);
+    },
+    getFormattedTime: function () {
+      // get elapsed time
+      if (this.timerIsRunning) {this.elapsedSeconds = this.getSecondsSinceLastUpdate() + this.runSeconds;}
+      else {this.elapsedSeconds = this.runSeconds;}
 
-let stopTimer = function () {
-  if (timerIsStopped()) {return undefined;}
-  else if (timerIsPaused()) {pauseSeconds += getSecondsSinceLastUpdate();}
-  else if (timerIsRunning) {runSeconds += getSecondsSinceLastUpdate();}
-  stopTime = performance.now();
-  lastUpdateTime = stopTime;
-  timerIsRunning = false;
+      let seconds = this.elapsedSeconds % 60;
+      let minutes = Math.floor((this.elapsedSeconds / 60) % 60);
+      let hours = Math.floor(this.elapsedSeconds / 3600);
 
-  updateDisplay()
-  disableButtons(['start', 'pause', 'stop']);
-};
+      return this.zeroPadder(hours) +':'+ this.zeroPadder(minutes) +':'+ this.zeroPadder(seconds);
+    },
+    updateDisplay: function () {
+      displayTimer.innerHTML = this.getFormattedTime();
 
-let resetTimer = function () {
-  startTime = 0;
-  stopTime = 0;
-  lastUpdateTime = 0;
-  runSeconds = 0;
-  pauseSeconds = 0;
-
-  updateDisplay()
-  disableButtons(['pause', 'resume', 'stop', 'reset']);
-};
-
-let getSecondsSinceLastUpdate = function () {
-  return Math.floor((performance.now() - lastUpdateTime) / 1000);
-};
-
-let timerIsPaused = function () {
-  if (lastUpdateTime !== stopTime && !timerIsRunning) {return true;}
-  else {return false;}
-};
-
-let timerIsStopped = function () {
-  if (lastUpdateTime === stopTime && !timerIsRunning) {return true;}
-  else {return false;}
-};
-
-// user interface
-let zeroPadder = function (yourNumber, minLength=2) {
-  // get the minimum length of the result
-  let sliceLength = minLength;
-	let numLength = String(yourNumber).length;
-	if (numLength > minLength) {sliceLength = numLength;}
-	
-  // create a string of zeroes
-	let zeroString = '';
-	for (let i = 0; i < sliceLength; i++) {zeroString += '0';}
-	
-  // return a string that is at least the length of minLength
-	return (zeroString + String(yourNumber)).slice(numLength);
-};
-
-let getFormattedTime = function () {
-  // get elapsed time
-  if (timerIsRunning) {elapsedSeconds = getSecondsSinceLastUpdate() + runSeconds;}
-  else {elapsedSeconds = runSeconds;}
-
-  let seconds = elapsedSeconds % 60;
-  let minutes = Math.floor((elapsedSeconds / 60) % 60);
-  let hours = Math.floor(elapsedSeconds / 3600);
-
-	return zeroPadder(hours) +':'+ zeroPadder(minutes) +':'+ zeroPadder(seconds);
-};
-
-let updateDisplay = function () {
-  displayTimer.innerHTML = getFormattedTime();
-
-  // deleteMe
-  let runSecondsElement = document.getElementById('run-seconds');
-  runSecondsElement.innerHTML = runSeconds;
-  let startTimeElement = document.getElementById('start-time');
-  startTimeElement.innerHTML = startTime;
-  let stopTimeElement = document.getElementById('stop-time');
-  stopTimeElement.innerHTML = stopTime;
-  let lastUpdateTimeElement = document.getElementById('last-update-time');
-  lastUpdateTimeElement.innerHTML = lastUpdateTime;
-  // deleteMe
-};
-
-let disableButtons = function (buttonsToDisable) {
-  if (buttonsToDisable.includes('start')) {
-    startButton.disabled = true;
-  } else {
-    startButton.disabled = false;
+      // deleteMe
+      document.getElementById('run-seconds').innerHTML = this.runSeconds;
+      document.getElementById('start-time').innerHTML = this.startTime;
+      document.getElementById('stop-time').innerHTML = this.stopTime;
+      document.getElementById('last-update-time').innerHTML = this.lastUpdateTime;
+      // deleteMe
+    },
+    disableButtons: function (buttonsToDisable) {
+      if (buttonsToDisable.includes('start')) {
+        this.startButtonDisabled = true;
+      } else {
+        this.startButtonDisabled = false;
+      }
+      if (buttonsToDisable.includes('pause')) {
+        this.pauseButtonDisabled = true;
+      } else {
+        this.pauseButtonDisabled = false;
+      }
+      if (buttonsToDisable.includes('resume')) {
+        this.resumeButtonDisabled = true;
+      } else {
+        this.resumeButtonDisabled = false;
+      }
+      if (buttonsToDisable.includes('stop')) {
+        this.stopButtonDisabled = true;
+      } else {
+        this.stopButtonDisabled = false;
+      }
+      if (buttonsToDisable.includes('reset')) {
+        this.resetButtonDisabled = true;
+      } else {
+        this.resetButtonDisabled = false;
+      }
+    }
   }
-  if (buttonsToDisable.includes('pause')) {
-    pauseButton.disabled = true;
-  } else {
-    pauseButton.disabled = false;
-  }
-  if (buttonsToDisable.includes('resume')) {
-    resumeButton.disabled = true;
-  } else {
-    resumeButton.disabled = false;
-  }
-  if (buttonsToDisable.includes('stop')) {
-    stopButton.disabled = true;
-  } else {
-    stopButton.disabled = false;
-  }
-  if (buttonsToDisable.includes('reset')) {
-    resetButton.disabled = true;
-  } else {
-    resetButton.disabled = false;
-  }
-};
+});
 
 
 // view logic
-displayTimer.innerHTML = getFormattedTime();
-disableButtons(['pause', 'resume', 'stop', 'reset']);
+// displayTimer.innerHTML = app.getFormattedTime();
+// app.disableButtons(['pause', 'resume', 'stop', 'reset']);
 
   </script>
 

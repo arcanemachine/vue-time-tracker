@@ -1,3 +1,6 @@
-- create JS timer
-    - get timer running
+- get blog posts to/from localStorage
+
+- convert timer data to object
+- save to/from localStorage
+- add categories
 - use django timer API
