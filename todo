@@ -1,5 +1,8 @@
+- add id to browser timer object
+- convert browser timer time to Date() object
 - upload to server
     - deduplication: use start time
+
 - add timers per category
     - ensure timer has some kind of reference ID
 
