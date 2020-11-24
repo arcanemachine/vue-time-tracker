@@ -1,9 +1,9 @@
 <!doctype html>
 <html>
-	<head>
+  <head>
     <meta charset="utf-8">
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-		<title>Vue - Time Tracker</title>
+    <title>Vue - Time Tracker</title>
 
     <style>
 
@@ -58,13 +58,13 @@ body {
 
     </style>
 
-	</head>
-	<body>
+  </head>
+  <body>
     <h1 style="text-align: center; margin-bottom: 1em;">Vue - Time Tracker</h1>
 
     <div id="app">
 
-      <time-tracker></time-tracker>
+      <time-tracker id="time-tracker"></time-tracker>
 
       <transition name="fade">
       <div id="notification-message" v-if="showNotificationMessage" :style="notificationStyle">Test Message</div>
@@ -83,6 +83,10 @@ let resumeButton = document.getElementById('timer__resume-button');
 let stopButton = document.getElementById('timer__stop-button');
 let resetButton = document.getElementById('timer__reset-button');
 
+var getCurrentUnixTime = function () {
+  return Math.floor(Date.now() / 1000);
+};
+
 Vue.component('time-tracker', {
   data: function () {
     return {
@@ -91,11 +95,17 @@ Vue.component('time-tracker', {
       polling: null,
       formattedTimer: '00:00:00',
 
+      // props
+      userId: 1,
+      activityId: 1,
+      timerId: 1,
+
       timer: {
         id: undefined,
-        startTime: 0,
-        stopTime: 0,
-        lastUpdateTime: 0,
+        activity: 1,
+        startTime: undefined,
+        stopTime: undefined,
+        lastUpdateTime: undefined,
         runSeconds: 0,
         pauseSeconds: 0,
         isRunning: false
@@ -107,7 +117,8 @@ Vue.component('time-tracker', {
       stopButtonDisabled: true,
       resetButtonDisabled: true,
 
-      showDebugInfo: false,
+      serverUploadPayload: undefined,
+      showDebugInfo: true,
     };
   },
   template: `
@@ -123,18 +134,20 @@ Vue.component('time-tracker', {
 
       <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
 
-      <div id="server-stuff" v-if="timer.startTime">
-        <p class="bold fake-link" @click="uploadToServer(timer)">Upload to server</p>
+      <div id="server-stuff" v-if="timer.startTime" style="margin-top: 1em;">
+        <button @click="uploadToServer(timer)">Upload to server</button>
       </div>
 
       <div id="debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
         <p>id: {{ timer.id }}</p>
+        <p>activity: {{ timer.activity }}</p>
         <p>startTime: {{ timer.startTime }}</p>
         <p>stopTime: {{ timer.stopTime }}</p>
         <p>lastUpdateTime: {{ timer.lastUpdateTime }}</p>
         <p>runSeconds: {{ timer.runSeconds }}</p>
         <p>pauseSeconds: {{ timer.pauseSeconds }}</p>
         <p>isRunning: {{ timer.isRunning }}</p>
+        <p style="margin-top: 2em;">serverUploadPayload: {{ serverUploadPayload }}</p>
       </div>
 
     </div>`,
@@ -142,66 +155,82 @@ Vue.component('time-tracker', {
   methods: {
     // server logic
     uploadToServer: function () {
-      ;
+      fetch('http://192.168.1.120:8000/api/v1/users/1/activities/1/timers/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(this.timer)
+      })
+        .then(response => response = response.json())
+        .then(data => this.serverUploadPayload = data);
     },
     // timer logic
     startTimer: function () {
       if (this.timer.isRunning) {return undefined;}
-      this.timer.startTime = performance.now();
+      this.timer.startTime = this.getCurrentUnixTime();
       this.timer.lastUpdateTime = this.timer.startTime;
-      this.timer.isRunning = true;
 
-      // COPY THIS TO OTHER METHODS
+      this.timer.isRunning = true;
       this.polling = setInterval(() => {return this.updateDisplay()}, 200);
+
       this.disableButtons(['start', 'resume', 'reset']);
     },
     pauseTimer: function () {
       if (this.timerIsStopped() || this.timerIsPaused()) {return undefined;}
       this.timer.runSeconds += this.getSecondsSinceLastUpdate();
+      this.timer.lastUpdateTime = this.getCurrentUnixTime();
+
       this.timer.isRunning = false;
-      this.timer.lastUpdateTime = performance.now();
-
-      // clear the timer method to prevent memory leaks
-      // COPY THIS TO OTHER METHODS
       clearInterval(this.polling);
-
       this.updateDisplay()
+
       this.disableButtons(['start', 'pause', 'reset']);
     },
     resumeTimer: function () {
       if (this.timer.isRunning) {return false;}
-      this.currentTime = performance.now()
+      this.currentTime = this.getCurrentUnixTime();
       this.elapsedSeconds = this.getSecondsSinceLastUpdate();
       this.timer.lastUpdateTime = this.currentTime;
       this.timer.stopTime = 0;
-      this.timer.isRunning = true;
 
+      this.timer.isRunning = true;
       this.updateDisplay()
+      this.polling = setInterval(() => {return this.updateDisplay()}, 200);
+
       this.disableButtons(['start', 'resume', 'reset']);
     },
     stopTimer: function () {
       if (this.timerIsStopped()) {return undefined;}
       else if (this.timerIsPaused()) {this.timer.pauseSeconds += this.getSecondsSinceLastUpdate();}
       else if (this.timer.isRunning) {this.timer.runSeconds += this.getSecondsSinceLastUpdate();}
-      this.timer.stopTime = performance.now();
+      this.timer.stopTime = this.getCurrentUnixTime();
       this.timer.lastUpdateTime = this.timer.stopTime;
+
       this.timer.isRunning = false;
+      clearInterval(this.polling);
 
       this.updateDisplay()
       this.disableButtons(['start', 'pause', 'stop']);
     },
     resetTimer: function () {
-      this.timer.startTime = 0;
-      this.timer.stopTime = 0;
-      this.timer.lastUpdateTime = 0;
+      this.timer.startTime = undefined;
+      this.timer.stopTime = undefined;
+      this.timer.lastUpdateTime = undefined;
       this.timer.runSeconds = 0;
       this.timer.pauseSeconds = 0;
 
       this.updateDisplay()
       this.disableButtons(['pause', 'resume', 'stop', 'reset']);
     },
+    getTimestamp: function (time) {
+      return Math.floor(time / 1000);
+    },
+    getCurrentUnixTime: function () {
+      return Math.floor(Date.now() / 1000);
+    },
     getSecondsSinceLastUpdate: function () {
-      return Math.floor((performance.now() - this.timer.lastUpdateTime) / 1000);
+      return this.getCurrentUnixTime() - this.timer.lastUpdateTime;
     },
     timerIsPaused: function () {
       if (this.timer.lastUpdateTime !== this.timer.stopTime && !this.timer.isRunning) {return true;}
@@ -312,5 +341,5 @@ var app = new Vue({
 
   </script>
 
-	</body>
+  </body>
 </html>
