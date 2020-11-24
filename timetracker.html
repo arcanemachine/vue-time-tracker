@@ -16,8 +16,11 @@ body {
   font-weight: bold;
 }
 
-.fake-link {
+.underline {
   text-decoration: underline;
+}
+
+.fake-link {
   cursor: pointer;
 }
 
@@ -29,7 +32,6 @@ body {
 
     <div id="app">
 
-      <time-tracker></time-tracker>
       <time-tracker></time-tracker>
 
     </div>
@@ -44,7 +46,6 @@ let pauseButton = document.getElementById('timer__pause-button');
 let resumeButton = document.getElementById('timer__resume-button');
 let stopButton = document.getElementById('timer__stop-button');
 let resetButton = document.getElementById('timer__reset-button');
-
 
 Vue.component('time-tracker', {
   data: function () {
@@ -72,7 +73,6 @@ Vue.component('time-tracker', {
       showDebugInfo: false,
     };
   },
-
   template: `
     <div class="timer" style="margin-bottom: 2em;">
       <div id="timer-buttons">
@@ -86,6 +86,10 @@ Vue.component('time-tracker', {
 
       <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
 
+      <div id="server-stuff" v-if="timer.startTime">
+        <p class="bold fake-link" @click="uploadToServer(timer)">Upload to server</p>
+      </div>
+
       <div id="debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
         <p>startTime: <span id='start-time'></span></p>
         <p>stopTime: <span id='stop-time'></span></p>
@@ -95,6 +99,7 @@ Vue.component('time-tracker', {
         <p>isRunning: <span id='is-running'></span></p>
         <button id="timer__update-time" @click="updateDisplay()">update timer</button></p>
       </div>
+
     </div>`,
 
   methods: {
@@ -236,7 +241,35 @@ Vue.component('time-tracker', {
 
 var app = new Vue({
   el: '#app',
-})
+  data: {
+    activityList: 'http://192.168.1.120:8000/api/v1/users/1/activities/',
+    result: undefined,
+  },
+  computed: {
+    activities: function () {
+      this.fetchData(this.activityList);
+      return this.result;
+    }
+  },
+  methods: {
+    fetchData: function(url) {
+      fetch(url)
+        .then(response => response = response.json())
+        .then(data => this.result = data);
+    },
+    timerActivityStarted: function(timerId) {
+      return document.getElementById('timer-' + String(timerId));
+    },
+    getActivityElementId: function(activityId) {
+      return 'activity-id-' + String(activityId);
+    },
+    startTimerActivity: function(activityId) {
+      let timerElement = document.createElement('time-tracker');
+      let el = document.getElementById('activity-id-' + String(activityId));
+      el.appendChild(timerElement);
+    }
+  }
+});
 
   </script>
 

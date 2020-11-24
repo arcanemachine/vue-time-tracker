@@ -1,6 +1,7 @@
-- get blog posts to/from localStorage
+- upload to server
+    - deduplication: use start time
+- add timers per category
+    - ensure timer has some kind of reference ID
 
-- convert timer data to object
 - save to/from localStorage
-- add categories
 - use django timer API
