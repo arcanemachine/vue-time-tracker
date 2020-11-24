@@ -24,6 +24,38 @@ body {
   cursor: pointer;
 }
 
+#notification-message {
+  /* div */
+  position: absolute;
+  bottom: 15%;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 50%;
+  min-height:3em;
+
+  /* border */
+  border: 1px solid black;
+  border-radius: 5px;
+
+  /* text */
+  text-align: center;
+  font-weight: bold;
+  color: beige;
+  display: inline-block;
+  line-height: 3em;
+}
+
+/* vue transitions */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .6s;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
     </style>
 
 	</head>
@@ -33,6 +65,10 @@ body {
     <div id="app">
 
       <time-tracker></time-tracker>
+
+      <transition name="fade">
+      <div id="notification-message" v-if="showNotificationMessage" :style="notificationStyle">Test Message</div>
+      </transition>
 
     </div>
 
@@ -56,6 +92,7 @@ Vue.component('time-tracker', {
       formattedTimer: '00:00:00',
 
       timer: {
+        id: undefined,
         startTime: 0,
         stopTime: 0,
         lastUpdateTime: 0,
@@ -91,13 +128,13 @@ Vue.component('time-tracker', {
       </div>
 
       <div id="debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
-        <p>startTime: <span id='start-time'></span></p>
-        <p>stopTime: <span id='stop-time'></span></p>
-        <p>lastUpdateTime: <span id='last-update-time'></span></p>
-        <p>runSeconds: <span id='run-seconds'></span></p>
-        <p>pauseSeconds: <span id='pause-seconds'></span></p>
-        <p>isRunning: <span id='is-running'></span></p>
-        <button id="timer__update-time" @click="updateDisplay()">update timer</button></p>
+        <p>id: {{ timer.id }}</p>
+        <p>startTime: {{ timer.startTime }}</p>
+        <p>stopTime: {{ timer.stopTime }}</p>
+        <p>lastUpdateTime: {{ timer.lastUpdateTime }}</p>
+        <p>runSeconds: {{ timer.runSeconds }}</p>
+        <p>pauseSeconds: {{ timer.pauseSeconds }}</p>
+        <p>isRunning: {{ timer.isRunning }}</p>
       </div>
 
     </div>`,
@@ -105,7 +142,7 @@ Vue.component('time-tracker', {
   methods: {
     // server logic
     uploadToServer: function () {
-
+      ;
     },
     // timer logic
     startTimer: function () {
@@ -206,12 +243,6 @@ Vue.component('time-tracker', {
     },
     updateDisplay: function () {
       this.formattedTimer = this.getFormattedTime();
-      document.getElementById('run-seconds').innerHTML = this.timer.runSeconds;
-      document.getElementById('pause-seconds').innerHTML = this.timer.pauseSeconds;
-      document.getElementById('start-time').innerHTML = this.timer.startTime;
-      document.getElementById('stop-time').innerHTML = this.timer.stopTime;
-      document.getElementById('last-update-time').innerHTML = this.timer.lastUpdateTime;
-      document.getElementById('is-running').innerHTML = this.timer.isRunning;
     },
     disableButtons: function (buttonsToDisable) {
       if (buttonsToDisable.includes('start')) {
@@ -248,6 +279,10 @@ var app = new Vue({
   data: {
     activityList: 'http://192.168.1.120:8000/api/v1/users/1/activities/',
     result: undefined,
+    showNotificationMessage: false,
+    notificationStyle: {
+      backgroundColor: '#0099CC'
+    },
   },
   computed: {
     activities: function () {
