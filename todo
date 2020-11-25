@@ -1,4 +1,4 @@
-- convert browser timer time to Date() object
+- fix: server chooses the numbers, need to make it accept the client's parameters
 - upload to server
     - deduplication: use start time
 - get id from server, add to browser timer object

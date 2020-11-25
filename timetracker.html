@@ -83,10 +83,6 @@ let resumeButton = document.getElementById('timer__resume-button');
 let stopButton = document.getElementById('timer__stop-button');
 let resetButton = document.getElementById('timer__reset-button');
 
-var getCurrentUnixTime = function () {
-  return Math.floor(Date.now() / 1000);
-};
-
 Vue.component('time-tracker', {
   data: function () {
     return {
@@ -101,11 +97,11 @@ Vue.component('time-tracker', {
       timerId: 1,
 
       timer: {
-        id: undefined,
+        id: null,
         activity: 1,
-        startTime: undefined,
-        stopTime: undefined,
-        lastUpdateTime: undefined,
+        startTime: null,
+        stopTime: null,
+        lastUpdateTime: null,
         runSeconds: 0,
         pauseSeconds: 0,
         isRunning: false
@@ -117,7 +113,7 @@ Vue.component('time-tracker', {
       stopButtonDisabled: true,
       resetButtonDisabled: true,
 
-      serverUploadPayload: undefined,
+      serverPayload: undefined,
       showDebugInfo: true,
     };
   },
@@ -147,7 +143,9 @@ Vue.component('time-tracker', {
         <p>runSeconds: {{ timer.runSeconds }}</p>
         <p>pauseSeconds: {{ timer.pauseSeconds }}</p>
         <p>isRunning: {{ timer.isRunning }}</p>
-        <p style="margin-top: 2em;">serverUploadPayload: {{ serverUploadPayload }}</p>
+
+        <p style="margin-top: 2em;"><button @click="downloadFromServer()">Download from server</button></p>
+        <p>serverPayload: {{ serverPayload }}</p>
       </div>
 
     </div>`,
@@ -155,15 +153,44 @@ Vue.component('time-tracker', {
   methods: {
     // server logic
     uploadToServer: function () {
-      fetch('http://192.168.1.120:8000/api/v1/users/1/activities/1/timers/', {
-        method: 'POST',
+      this.serverPayload = {};
+      let putData = this.createServerTimerObject(this.timer);
+      fetch('http://192.168.1.120:8000/api/v1/users/1/activities/1/timers/1/', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(this.timer)
+        body: JSON.stringify(putData)
       })
         .then(response => response = response.json())
-        .then(data => this.serverUploadPayload = data);
+        .then(data => this.serverPayload = data);
+    },
+    downloadFromServer: function () {
+      this.serverPayload = {};
+      let timerUrl = 'http://192.168.1.120:8000/api/v1/users/1/activities/1/timers/1/';
+      let myFetch = fetch(timerUrl)
+        .then(response => response = response.json())
+        .then(data => this.updateLocalTimerObject(data));
+
+    },
+    createServerTimerObject: function(timer) {
+      return {
+        start_time: timer.startTime,
+        stop_time: timer.stopTime,
+        last_update_time: timer.lastUpdateTime,
+        run_seconds: timer.runSeconds,
+        pause_seconds: timer.pauseSeconds,
+        is_running: timer.isRunning
+      };
+    },
+    updateLocalTimerObject: function(data) {
+      this.timer.id = data['id'];
+      this.timer.activity = data['activity'];
+      this.timer.startTime = data['start_time'];
+      this.timer.stopTime = data['stop_time'];
+      this.timer.lastUpdateTime = data['last_update_time'];
+      this.timer.runSeconds = data['run_seconds'];
+      this.timer.pauseSeconds = data['pause_seconds'];
     },
     // timer logic
     startTimer: function () {
@@ -214,9 +241,9 @@ Vue.component('time-tracker', {
       this.disableButtons(['start', 'pause', 'stop']);
     },
     resetTimer: function () {
-      this.timer.startTime = undefined;
-      this.timer.stopTime = undefined;
-      this.timer.lastUpdateTime = undefined;
+      this.timer.startTime = null;
+      this.timer.stopTime = null;
+      this.timer.lastUpdateTime = null;
       this.timer.runSeconds = 0;
       this.timer.pauseSeconds = 0;
 
@@ -226,11 +253,14 @@ Vue.component('time-tracker', {
     getTimestamp: function (time) {
       return Math.floor(time / 1000);
     },
+    getCurrentTime: function () {
+      return new Date();
+    },
     getCurrentUnixTime: function () {
       return Math.floor(Date.now() / 1000);
     },
     getSecondsSinceLastUpdate: function () {
-      return this.getCurrentUnixTime() - this.timer.lastUpdateTime;
+      return (this.getCurrentUnixTime() - this.timer.lastUpdateTime);
     },
     timerIsPaused: function () {
       if (this.timer.lastUpdateTime !== this.timer.stopTime && !this.timer.isRunning) {return true;}
@@ -261,9 +291,13 @@ Vue.component('time-tracker', {
     },
     getFormattedTime: function () {
       // get elapsed time
-      if (this.timer.isRunning) {this.elapsedSeconds = this.getSecondsSinceLastUpdate() + this.timer.runSeconds;}
-      else {this.elapsedSeconds = this.timer.runSeconds;}
+      if (this.timer.isRunning) {
+        this.elapsedSeconds = this.getSecondsSinceLastUpdate() + this.timer.runSeconds;
+      } else {
+        this.elapsedSeconds = this.timer.runSeconds;
+      }
 
+      // convert to timer display format
       let seconds = this.elapsedSeconds % 60;
       let minutes = Math.floor((this.elapsedSeconds / 60) % 60);
       let hours = Math.floor(this.elapsedSeconds / 3600);
