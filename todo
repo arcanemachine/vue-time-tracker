@@ -1,5 +1,11 @@
-- do everything locally first
-  - create per-category timers
+<timer>
+  - import timer as prop
+    - show useful info
+    - click timer to expand/get more info
+    - sort by day?
+  - get formattedTime
+</timer>
+
     - work with existing timer until new one is created (timer.hasStopTime && startButton.pressed)
 - integrate with server
 

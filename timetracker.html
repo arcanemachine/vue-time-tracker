@@ -23,13 +23,14 @@
                 :activity="activity"
                 :key="activity.id"
                 @activity-delete="activityDelete(activity)">
-        <!--time-tracker :activity="activity">
-          <timer v-for="timer in activity.timers"
-                 :activity="activity"
-                 :timer="timer"
-                 :key="timer.id">
-          </timer>
-        </time-tracker-->
+        <timer v-for="timer in activity.timers"
+               :activity="activity"
+               :timer="timer"
+               :key="timer.id">
+        </timer>
+
+        <time-tracker :activity="activity"></time-tracker>
+
       </activity>
 
 
@@ -101,7 +102,7 @@ Vue.component('activity', {
   props: ['activity'],
   data: function () {
     return {
-      showActivityTimeTracker: false,
+      showActivityTimeTracker: true,
       showActivityDeletePanel: false
     }
   },
@@ -138,7 +139,7 @@ Vue.component('activity', {
   methods: {
     emitActivityDeleteEvent: function () {
       this.$emit('activity-delete', {
-        activityId: this.activity.id,
+        activity: this.activity,
       });
       this.showActivityDeletePanel = false;
     }
@@ -147,29 +148,50 @@ Vue.component('activity', {
 
 Vue.component('timer', {
   props: ['timer', 'activity'],
+  data: function () {
+    return {
+      showDetailedTimerInfo: false
+    }
+  },
+  computed: {
+    formattedTimer: function () {
+      return '00:00:00';
+    }
+  },
   template: `
-    <div>timer-component</div>
+    <div class="mt-2 ml-4">
+      <span class="bold fake-link"
+            @click="showDetailedTimerInfo = !showDetailedTimerInfo">
+        {{ formattedTimer }}</span>
+      <div class="ml-2" v-if="showDetailedTimerInfo">
+        <p>activity: #{{ activity.id }}: {{ activity.name }}</p>
+        <p>timer id: {{ timer.id }}</p>
+        <p>startTime: {{ timer.startTime }}</p>
+        <p>stopTime: {{ timer.stopTime }}</p>
+        <p>lastUpdateTime: {{ timer.lastUpdateTime }}</p>
+        <p>runSeconds: {{ timer.runSeconds }}</p>
+        <p>pauseSeconds: {{ timer.pauseSeconds }}</p>
+        <p>isRunning: {{ timer.isRunning }}</p>
+      </div>
+    </div>
   `
 });
 
 Vue.component('time-tracker', {
-  props: ['timer'],
+  props: ['activity'],
   data: function () {
     return {
       currentTime: 0,
       elapsedSeconds: 0,
-      formattedTimer: '00:00:00',
+      formattedTime: '00:00:00',
       polling: null,
 
       // props
       userId: 1,
-      activityId: 1,
       timerId: 1,
 
-      /*
       timer: {
         id: null,
-        //activity: 1,
         startTime: null,
         stopTime: null,
         lastUpdateTime: null,
@@ -177,7 +199,6 @@ Vue.component('time-tracker', {
         pauseSeconds: 0,
         isRunning: false
       },
-      */
 
       startButtonDisabled: false,
       pauseButtonDisabled: true,
@@ -189,8 +210,13 @@ Vue.component('time-tracker', {
       showDebugInfo: false,
     };
   },
+  computed: {
+    formattedTimer: function () {
+      return '00:00:00';
+    }
+  },
   template: `
-    <div class="timer" style="margin-bottom: 2em;">
+    <div class="timer mt-2 ml-4 mb-2">
       <div id="timer-buttons">
         <button @click="startTimer()" :disabled="startButtonDisabled">start</button>
         <button @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
@@ -208,7 +234,7 @@ Vue.component('time-tracker', {
 
       <div id="debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
         <p>id: {{ timer.id }}</p>
-        <p>activity: {{ timer.activity }}</p>
+        <p>activity: #{{ activity.id }}: {{ activity.name }}</p>
         <p>startTime: {{ timer.startTime }}</p>
         <p>stopTime: {{ timer.stopTime }}</p>
         <p>lastUpdateTime: {{ timer.lastUpdateTime }}</p>
@@ -363,6 +389,9 @@ Vue.component('time-tracker', {
     },
     getFormattedTime: function () {
       // get elapsed time
+      if (!this.timer.startTime) {
+        return '00:00:00';
+      }
       if (this.timer.isRunning) {
         this.elapsedSeconds = this.getSecondsSinceLastUpdate() + this.timer.runSeconds;
       } else {
@@ -421,14 +450,19 @@ var app = new Vue({
     },
   },
   created: function () {
-		;
+		this.localStorageFactory();
     //if (localStorage.getItem('activities')) {
     //  this.activities = JSON.parse(localStorage['activities']);
     //}
   },
   methods: {
 
-    // helper functions
+    // factories
+    localStorageFactory: function () {
+      let activity = this.activityFactory('My Activity');
+      // let timer = this.timerFactory(activity)
+      localStorage['activities'] = JSON.stringify(this.activities);
+    },
 		activityFactory: function (name=undefined) {
       if (!name) {
         name = 'Activity ' + String(this.activities.length + 1)
@@ -450,8 +484,10 @@ var app = new Vue({
         pauseSeconds: 0,
         isRunning: false
       });
-      return this.activity.timers[activity.timers.length - 1]
+      return activity.timers[activity.timers.length - 1]
     },
+    
+    // helper functions
     getFirstActivity: function () {
       if (this.activities.length) {
         return this.activities[0];
