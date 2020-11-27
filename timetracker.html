@@ -13,23 +13,25 @@
 
       <h2>Activities</h2>
 
-      <p class="mt-4"
-         v-if="!activities.length">
+      <p v-if="!activities.length" class="mt-2 mb-4">
         You have not created any activities.
       </p>
 
+      <add-activity @activity-create="activityCreate($event)"></add-activity>
+
       <activity v-for="activity in activities"
                 :activity="activity"
-                :key="activity.id">
+                :key="activity.id"
+                @activity-delete="activityDelete(activity)">
+        <!--time-tracker :activity="activity">
+          <timer v-for="timer in activity.timers"
+                 :activity="activity"
+                 :timer="timer"
+                 :key="timer.id">
+          </timer>
+        </time-tracker-->
       </activity>
 
-      <add-activity class="mt-4"
-                    @activity-create="activityCreate($event)">
-      </add-activity>
-
-      <div class="mt-4 mb-4">------</div>
-
-      <time-tracker id="time-tracker"></time-tracker>
 
       <transition name="fade">
         <div id="notification-message" v-if="showNotificationMessage" :style="notificationStyle">Test Message</div>
@@ -41,6 +43,13 @@
   <script>
 
 "use strict";
+
+Vue.directive('focus', {
+  inserted: function (el) {
+    // focus the element
+    el.focus();
+  }
+});
 
 Vue.component('add-activity', {
   data: function () {
@@ -60,6 +69,7 @@ Vue.component('add-activity', {
             v-if="showActivityCreatePanel">
 
         <input type="text"
+               v-focus
                id="activity-create__text"
                v-model="newActivityName"
                @keyup.enter="emitActivityCreateEvent">
@@ -80,6 +90,7 @@ Vue.component('add-activity', {
   `,
   methods: {
     emitActivityCreateEvent: function () {
+      this.showActivityCreatePanel = false;
       this.$emit('activity-create', this.newActivityName);
       this.newActivityName = "";
     }
@@ -88,29 +99,77 @@ Vue.component('add-activity', {
 
 Vue.component('activity', {
   props: ['activity'],
+  data: function () {
+    return {
+      showActivityTimeTracker: false,
+      showActivityDeletePanel: false
+    }
+  },
   template: `
-    <div>
-      <span>{{ activity.id + 1 }}. {{ activity.name }}</span>
+    <div class="mt-3">
+      <span>{{ activity.id + 1 }}.
+
+        <span class="bold fake-link"
+              @click="showActivityTimeTracker = !showActivityTimeTracker">
+          {{ activity.name }}</span>
+
+      </span>
+
+      <div v-if="showActivityTimeTracker">
+        <slot></slot>
+
+        <div class="activity-delete mt-4">
+          <span class="bold fake-link"
+                style="margin-left: 1em;"
+                @click="showActivityDeletePanel = !showActivityDeletePanel">
+            Delete</span>
+
+          <span v-if="showActivityDeletePanel"> 
+            <span class="activity-confirm-delete">
+              <span class="ml-2">Are you sure?</span>
+              <button @click="emitActivityDeleteEvent">Delete</button>
+              <button @click="showActivityDeletePanel = false">Cancel</button>
+            </span>
+          </span>
+        </div>
+      </div>
     </div>
+  `,
+  methods: {
+    emitActivityDeleteEvent: function () {
+      this.$emit('activity-delete', {
+        activityId: this.activity.id,
+      });
+      this.showActivityDeletePanel = false;
+    }
+  }
+});
+
+Vue.component('timer', {
+  props: ['timer', 'activity'],
+  template: `
+    <div>timer-component</div>
   `
 });
 
 Vue.component('time-tracker', {
+  props: ['timer'],
   data: function () {
     return {
       currentTime: 0,
       elapsedSeconds: 0,
-      polling: null,
       formattedTimer: '00:00:00',
+      polling: null,
 
       // props
       userId: 1,
       activityId: 1,
       timerId: 1,
 
+      /*
       timer: {
         id: null,
-        activity: 1,
+        //activity: 1,
         startTime: null,
         stopTime: null,
         lastUpdateTime: null,
@@ -118,6 +177,7 @@ Vue.component('time-tracker', {
         pauseSeconds: 0,
         isRunning: false
       },
+      */
 
       startButtonDisabled: false,
       pauseButtonDisabled: true,
@@ -361,14 +421,77 @@ var app = new Vue({
     },
   },
   created: function () {
-    if (localStorage.getItem('activities')) {
-      this.activities = JSON.parse(localStorage['activities']);
-    }
+		;
+    //if (localStorage.getItem('activities')) {
+    //  this.activities = JSON.parse(localStorage['activities']);
+    //}
   },
   methods: {
-    updateLocalStorage: function () {
-      localStorage['activities'] = JSON.stringify(this.activities);
+
+    // helper functions
+		activityFactory: function (name=undefined) {
+      if (!name) {
+        name = 'Activity ' + String(this.activities.length + 1)
+      }
+      this.activities.push({
+        id: this.activities.length,
+        name: name,
+        timers: []
+      });
+      return this.activities[this.activities.length - 1];
+		},
+    timerFactory: function (activity) {
+			activity.timers.push({
+        id: activity.timers.length,
+        startTime: null,
+        stopTime: null,
+        lastUpdateTime: null,
+        runSeconds: 0,
+        pauseSeconds: 0,
+        isRunning: false
+      });
+      return this.activity.timers[activity.timers.length - 1]
     },
+    getFirstActivity: function () {
+      if (this.activities.length) {
+        return this.activities[0];
+      } else {
+        console.log('No activities have been created');
+        return undefined;
+      }
+    },
+    getLastActivity: function () {
+      return this.activities[this.activities.length - 1];
+    },
+    getFirstTimer: function (activity) {
+      if (activity.timers.length) {
+        return activity.timers[0];
+      } else {
+        console.log('No timers exist for this activity');
+        return undefined;
+      }
+    },
+    getLastTimer: function (activity) {
+      return activity.timers[activity.timers.length - 1];
+    },
+
+    // localStorage
+    updateLocalStorage: function () {
+      ;// localStorage['activities'] = JSON.stringify(this.activities);
+    },
+
+    // fetch
+    fetchData: function(url) {
+      fetch(url)
+        .then(response => response = response.json())
+        .then(data => this.result = data);
+    },
+    fetchActivities: function () {
+      this.fetchData(this.activityList);
+      return this.result;
+    },
+
+    // activities
     activityCreate: function (newActivityName) {
       this.activities.push({
         id: this.activities.length,
@@ -377,26 +500,17 @@ var app = new Vue({
       });
       this.updateLocalStorage();
     },
-    getActivities: function () {
-      this.fetchData(this.activityList);
-      return this.result;
+    activityDelete: function (activity) {
+      this.activities.splice(activity.id, 1);
+      this.updateActivityIds();
+      this.updateLocalStorage();
     },
-    fetchData: function(url) {
-      fetch(url)
-        .then(response => response = response.json())
-        .then(data => this.result = data);
+    updateActivityIds: function() {
+      for (let i=0; i < this.activities.length; i++) {
+        this.activities[i].id = i;
+      }
+      this.updateLocalStorage();
     },
-    timerActivityStarted: function(timerId) {
-      return document.getElementById('timer-' + String(timerId));
-    },
-    getActivityElementId: function(activityId) {
-      return 'activity-id-' + String(activityId);
-    },
-    startTimerActivity: function(activityId) {
-      let timerElement = document.createElement('time-tracker');
-      let el = document.getElementById('activity-id-' + String(activityId));
-      el.appendChild(timerElement);
-    }
   }
 });
 

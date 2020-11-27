@@ -80,6 +80,14 @@ body {
   margin-top: 2em;
 }
 
+.mt-5 {
+  margin-top: 2.5em;
+}
+
+.mt-6 {
+  margin-top: 3em;
+}
+
 .mr-0 {
   margin-right: 0em;
 }
@@ -118,6 +126,14 @@ body {
 
 .mb-4 {
   margin-bottom: 2em;
+}
+
+.mb-4 {
+  margin-bottom: 2.5em;
+}
+
+.mb-6 {
+  margin-bottom: 3em;
 }
 
 .ml-0 {
