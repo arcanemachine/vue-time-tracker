@@ -1,6 +1,9 @@
 <time-tracker>
   - save old timer
-    - emit 'save-old-timer', save to parent
+    - currently broken: fix obj
+  - recognize old timers
+  - sort timers
+  - use startTime as id?
   - track everything in localStorage
 </time-tracker>
 

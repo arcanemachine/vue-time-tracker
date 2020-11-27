@@ -30,7 +30,7 @@
         </timer>
 
         <time-tracker :activity="activity"
-                      @save-timer>
+                      @save-timer="saveTimer($event)">
         </time-tracker>
 
       </activity>
@@ -212,7 +212,7 @@ Vue.component('time-tracker', {
       showTimerResetPanel: false,
 
       serverPayload: undefined,
-      showDebugInfoButton: false,
+      showDebugInfoButton: true,
       showDebugInfo: false,
     };
   },
@@ -300,7 +300,10 @@ Vue.component('time-tracker', {
       this.timer.pauseSeconds = data['pause_seconds'];
     },
     saveTimer: function() {
-      this.$emit('save-timer', this.timer);
+      this.$emit('save-timer', {
+        activity: this.activity,
+        timer: this.timer
+      });
       this.initializeTimer();
     },
     // timer logic
@@ -364,7 +367,7 @@ Vue.component('time-tracker', {
       this.disableButtons(['start', 'pause', 'stop']);
     },
     saveTimer: function () {
-      this.saveTimer();
+      this.$emit('save-timer', this.timer);
       this.initializeTimer();
       this.updateDisplay()
       this.disableButtons(['pause', 'resume', 'stop', 'save', 'reset']);
@@ -495,6 +498,14 @@ var app = new Vue({
   },
   methods: {
 
+    // timers
+    saveTimer: function (obj) {
+        obj['activity'].timers.push({
+          id: timer.startTime,
+          timer: timer
+        });
+    },
+
     // factories
     localStorageFactory: function () {
       let activity = this.activityFactory('My Activity');
@@ -514,13 +525,15 @@ var app = new Vue({
 		},
     timerFactory: function (activity) {
 			activity.timers.push({
-        id: activity.timers.length,
-        startTime: null,
-        stopTime: null,
-        lastUpdateTime: null,
-        runSeconds: 0,
-        pauseSeconds: 0,
-        isRunning: false
+        timer: {
+          id: activity.timers.length,
+          startTime: null,
+          stopTime: null,
+          lastUpdateTime: null,
+          runSeconds: 0,
+          pauseSeconds: 0,
+          isRunning: false
+        }
       });
       return activity.timers[activity.timers.length - 1]
     },
