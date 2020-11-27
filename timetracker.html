@@ -2,86 +2,98 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <title>Vue - Time Tracker</title>
 
-    <style>
-
-body {
-  font-family: Helvetica;
-  margin: 2em;
-}
-
-.bold {
-  font-weight: bold;
-}
-
-.underline {
-  text-decoration: underline;
-}
-
-.fake-link {
-  cursor: pointer;
-}
-
-#notification-message {
-  /* div */
-  position: absolute;
-  bottom: 15%;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 50%;
-  min-height:3em;
-
-  /* border */
-  border: 1px solid black;
-  border-radius: 5px;
-
-  /* text */
-  text-align: center;
-  font-weight: bold;
-  color: beige;
-  display: inline-block;
-  line-height: 3em;
-}
-
-/* vue transitions */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity .6s;
-}
-
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-
-    </style>
-
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <h1 style="text-align: center; margin-bottom: 1em;">Vue - Time Tracker</h1>
 
     <div id="app">
 
+      <h2>Activities</h2>
+
+      <p class="mt-4"
+         v-if="!activities.length">
+        You have not created any activities.
+      </p>
+
+      <activity v-for="activity in activities"
+                :activity="activity"
+                :key="activity.id">
+      </activity>
+
+      <add-activity class="mt-4"
+                    @activity-create="activityCreate($event)">
+      </add-activity>
+
+      <div class="mt-4 mb-4">------</div>
+
       <time-tracker id="time-tracker"></time-tracker>
 
       <transition name="fade">
-      <div id="notification-message" v-if="showNotificationMessage" :style="notificationStyle">Test Message</div>
+        <div id="notification-message" v-if="showNotificationMessage" :style="notificationStyle">Test Message</div>
       </transition>
 
     </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
   <script>
 
 "use strict";
 
-// html elements
-let startButton = document.getElementById('timer__start-button');
-let pauseButton = document.getElementById('timer__pause-button');
-let resumeButton = document.getElementById('timer__resume-button');
-let stopButton = document.getElementById('timer__stop-button');
-let resetButton = document.getElementById('timer__reset-button');
+Vue.component('add-activity', {
+  data: function () {
+    return {
+      showActivityCreatePanel: false,
+      newActivityName: ""
+    }
+  },
+  template: `
+    <div>
+
+      <span class="bold fake-link" @click="showActivityCreatePanel = !showActivityCreatePanel">
+        Add new activity
+      </span>
+
+      <span id="activity-create__panel"
+            v-if="showActivityCreatePanel">
+
+        <input type="text"
+               id="activity-create__text"
+               v-model="newActivityName"
+               @keyup.enter="emitActivityCreateEvent">
+
+        <button id="activity-create__confirm-button"
+                @click="emitActivityCreateEvent">
+          Add activity
+        </button>
+
+        <button id="activity-create__cancel-button"
+                @click="showActivityCreatePanel = false">
+          Cancel
+        </button>
+
+      </span>
+
+    </div>
+  `,
+  methods: {
+    emitActivityCreateEvent: function () {
+      this.$emit('activity-create', this.newActivityName);
+      this.newActivityName = "";
+    }
+  }
+});
+
+Vue.component('activity', {
+  props: ['activity'],
+  template: `
+    <div>
+      <span>{{ activity.id + 1 }}. {{ activity.name }}</span>
+    </div>
+  `
+});
 
 Vue.component('time-tracker', {
   data: function () {
@@ -114,18 +126,18 @@ Vue.component('time-tracker', {
       resetButtonDisabled: true,
 
       serverPayload: undefined,
-      showDebugInfo: true,
+      showDebugInfo: false,
     };
   },
   template: `
     <div class="timer" style="margin-bottom: 2em;">
       <div id="timer-buttons">
-        <button id="timer__start-button" @click="startTimer()" :disabled="startButtonDisabled">start</button>
-        <button id="timer__pause-button" @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
-        <button id="timer__resume-button" @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
-        <button id="timer__stop-button" @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
-        <button id="timer__reset-button" @click="resetTimer()" :disabled="resetButtonDisabled">reset</button>
-        <button id="timer__toggle-debug" @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
+        <button @click="startTimer()" :disabled="startButtonDisabled">start</button>
+        <button @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
+        <button @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
+        <button @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
+        <button @click="resetTimer()" :disabled="resetButtonDisabled">reset</button>
+        <button @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
       </div>
 
       <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
@@ -340,20 +352,35 @@ Vue.component('time-tracker', {
 var app = new Vue({
   el: '#app',
   data: {
-    activityList: 'http://192.168.1.120:8000/api/v1/users/1/activities/',
+    activities: [],
+    activityListUrl: 'http://192.168.1.120:8000/api/v1/users/1/activities/',
     result: undefined,
     showNotificationMessage: false,
     notificationStyle: {
       backgroundColor: '#0099CC'
     },
   },
-  computed: {
-    activities: function () {
-      this.fetchData(this.activityList);
-      return this.result;
+  created: function () {
+    if (localStorage.getItem('activities')) {
+      this.activities = JSON.parse(localStorage['activities']);
     }
   },
   methods: {
+    updateLocalStorage: function () {
+      localStorage['activities'] = JSON.stringify(this.activities);
+    },
+    activityCreate: function (newActivityName) {
+      this.activities.push({
+        id: this.activities.length,
+        name: newActivityName,
+        timers: {}
+      });
+      this.updateLocalStorage();
+    },
+    getActivities: function () {
+      this.fetchData(this.activityList);
+      return this.result;
+    },
     fetchData: function(url) {
       fetch(url)
         .then(response => response = response.json())

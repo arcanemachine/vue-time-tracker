@@ -1,10 +1,20 @@
-- fix: server chooses the numbers, need to make it accept the client's parameters
+- do everything locally first
+  - create per-category timers
+    - work with existing timer until new one is created (timer.hasStopTime && startButton.pressed)
+- integrate with server
+
 - upload to server
     - deduplication: use start time
 - get id from server, add to browser timer object
 
 - add timers per category
-    - ensure timer has some kind of reference ID
-
 - save to/from localStorage
 - use django timer API
+
+- integrate with user accounts
+
+- make things pretty?
+
+- learn more:
+  - vue-router
+  - vuex
