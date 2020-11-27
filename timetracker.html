@@ -29,7 +29,9 @@
                :key="timer.id">
         </timer>
 
-        <time-tracker :activity="activity"></time-tracker>
+        <time-tracker :activity="activity"
+                      @save-timer>
+        </time-tracker>
 
       </activity>
 
@@ -60,7 +62,7 @@ Vue.component('add-activity', {
     }
   },
   template: `
-    <div>
+    <div class="mt-4 mb-4">
 
       <span class="bold fake-link" @click="showActivityCreatePanel = !showActivityCreatePanel">
         Add new activity
@@ -183,7 +185,7 @@ Vue.component('time-tracker', {
     return {
       currentTime: 0,
       elapsedSeconds: 0,
-      formattedTime: '00:00:00',
+      formattedTimer: '00:00:00',
       polling: null,
 
       // props
@@ -204,16 +206,15 @@ Vue.component('time-tracker', {
       pauseButtonDisabled: true,
       resumeButtonDisabled: true,
       stopButtonDisabled: true,
+      saveButtonDisabled: true,
       resetButtonDisabled: true,
 
+      showTimerResetPanel: false,
+
       serverPayload: undefined,
+      showDebugInfoButton: false,
       showDebugInfo: false,
     };
-  },
-  computed: {
-    formattedTimer: function () {
-      return '00:00:00';
-    }
   },
   template: `
     <div class="timer mt-2 ml-4 mb-2">
@@ -222,8 +223,16 @@ Vue.component('time-tracker', {
         <button @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
         <button @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
         <button @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
-        <button @click="resetTimer()" :disabled="resetButtonDisabled">reset</button>
-        <button @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
+        <button @click="saveTimer()" :disabled="saveButtonDisabled">save timer</button>
+        <button @click="showTimerResetPanel = !showTimerResetPanel" :disabled="resetButtonDisabled">reset</button>
+
+        <span v-if="showTimerResetPanel" class="ml-2">
+          Are you sure?
+          <button class="ml-2" @click="resetTimer()">Yes</button>
+          <button @click="showTimerResetPanel = !showTimerResetPanel">Cancel</button>
+        </span>
+
+        <button v-if="showDebugInfoButton" @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
       </div>
 
       <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
@@ -290,7 +299,23 @@ Vue.component('time-tracker', {
       this.timer.runSeconds = data['run_seconds'];
       this.timer.pauseSeconds = data['pause_seconds'];
     },
+    saveTimer: function() {
+      this.$emit('save-timer', this.timer);
+      this.initializeTimer();
+    },
     // timer logic
+    initializeTimer: function () {
+      this.timer = {
+        id: null,
+        startTime: null,
+        stopTime: null,
+        lastUpdateTime: null,
+        runSeconds: 0,
+        pauseSeconds: 0,
+        isRunning: false
+      };
+      return this.timer;
+    },
     startTimer: function () {
       if (this.timer.isRunning) {return undefined;}
       this.timer.startTime = this.getCurrentUnixTime();
@@ -299,7 +324,7 @@ Vue.component('time-tracker', {
       this.timer.isRunning = true;
       this.polling = setInterval(() => {return this.updateDisplay()}, 200);
 
-      this.disableButtons(['start', 'resume', 'reset']);
+      this.disableButtons(['start', 'resume']);
     },
     pauseTimer: function () {
       if (this.timerIsStopped() || this.timerIsPaused()) {return undefined;}
@@ -310,7 +335,7 @@ Vue.component('time-tracker', {
       clearInterval(this.polling);
       this.updateDisplay()
 
-      this.disableButtons(['start', 'pause', 'reset']);
+      this.disableButtons(['start', 'pause']);
     },
     resumeTimer: function () {
       if (this.timer.isRunning) {return false;}
@@ -323,7 +348,7 @@ Vue.component('time-tracker', {
       this.updateDisplay()
       this.polling = setInterval(() => {return this.updateDisplay()}, 200);
 
-      this.disableButtons(['start', 'resume', 'reset']);
+      this.disableButtons(['start', 'resume']);
     },
     stopTimer: function () {
       if (this.timerIsStopped()) {return undefined;}
@@ -338,14 +363,22 @@ Vue.component('time-tracker', {
       this.updateDisplay()
       this.disableButtons(['start', 'pause', 'stop']);
     },
+    saveTimer: function () {
+      this.saveTimer();
+      this.initializeTimer();
+      this.updateDisplay()
+      this.disableButtons(['pause', 'resume', 'stop', 'save', 'reset']);
+    },
     resetTimer: function () {
       this.timer.startTime = null;
       this.timer.stopTime = null;
       this.timer.lastUpdateTime = null;
       this.timer.runSeconds = 0;
       this.timer.pauseSeconds = 0;
+      this.timer.isRunning = false;
 
       this.updateDisplay()
+      this.showTimerResetPanel = false;
       this.disableButtons(['pause', 'resume', 'stop', 'reset']);
     },
     getTimestamp: function (time) {
@@ -428,6 +461,11 @@ Vue.component('time-tracker', {
         this.stopButtonDisabled = true;
       } else {
         this.stopButtonDisabled = false;
+      }
+      if (buttonsToDisable.includes('save')) {
+        this.saveButtonDisabled = true;
+      } else {
+        this.saveButtonDisabled = false;
       }
       if (buttonsToDisable.includes('reset')) {
         this.resetButtonDisabled = true;
