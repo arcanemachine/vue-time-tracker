@@ -23,6 +23,7 @@
                 :activity="activity"
                 :key="activity.id"
                 @activity-delete="activityDelete(activity)">
+
         <timer v-for="timer in activity.timers"
                :activity="activity"
                :timer="timer"
@@ -30,7 +31,7 @@
         </timer>
 
         <time-tracker :activity="activity"
-                      @save-timer="saveTimer($event)">
+                      @timer-save="timerSave($event)">
         </time-tracker>
 
       </activity>
@@ -121,7 +122,7 @@ Vue.component('activity', {
       <div v-if="showActivityTimeTracker">
         <slot></slot>
 
-        <div class="activity-delete mt-4">
+        <div class="activity-delete mt-3">
           <span class="bold fake-link"
                 style="margin-left: 1em;"
                 @click="showActivityDeletePanel = !showActivityDeletePanel">
@@ -130,7 +131,7 @@ Vue.component('activity', {
           <span v-if="showActivityDeletePanel"> 
             <span class="activity-confirm-delete">
               <span class="ml-2">Are you sure?</span>
-              <button @click="emitActivityDeleteEvent">Delete</button>
+              <button @click="emitActivityDeleteEvent">Delete '{{ activity.name }}'</button>
               <button @click="showActivityDeletePanel = false">Cancel</button>
             </span>
           </span>
@@ -140,9 +141,7 @@ Vue.component('activity', {
   `,
   methods: {
     emitActivityDeleteEvent: function () {
-      this.$emit('activity-delete', {
-        activity: this.activity,
-      });
+      this.$emit('activity-delete', this.activity);
       this.showActivityDeletePanel = false;
     }
   }
@@ -223,7 +222,7 @@ Vue.component('time-tracker', {
         <button @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
         <button @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
         <button @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
-        <button @click="saveTimer()" :disabled="saveButtonDisabled">save timer</button>
+        <button @click="timerSave()" :disabled="saveButtonDisabled">save timer</button>
         <button @click="showTimerResetPanel = !showTimerResetPanel" :disabled="resetButtonDisabled">reset</button>
 
         <span v-if="showTimerResetPanel" class="ml-2">
@@ -235,7 +234,7 @@ Vue.component('time-tracker', {
         <button v-if="showDebugInfoButton" @click="showDebugInfo = !showDebugInfo">show/hide debug</button></p>
       </div>
 
-      <div id="timer" style="margin-top: 2em;">{{ formattedTimer }}</div>
+      <div id="timer-display" style="margin-top: 2em;">{{ formattedTimer }}</div>
 
       <div id="server-stuff" v-if="timer.startTime" style="margin-top: 1em;">
         <button @click="uploadToServer(timer)">Upload to server</button>
@@ -258,7 +257,8 @@ Vue.component('time-tracker', {
     </div>`,
 
   methods: {
-    // server logic
+
+    // server storage logic
     uploadToServer: function () {
       this.serverPayload = {};
       let putData = this.createServerTimerObject(this.timer);
@@ -290,6 +290,8 @@ Vue.component('time-tracker', {
         is_running: timer.isRunning
       };
     },
+
+    // local storage logic
     updateLocalTimerObject: function(data) {
       this.timer.id = data['id'];
       this.timer.activity = data['activity'];
@@ -299,13 +301,17 @@ Vue.component('time-tracker', {
       this.timer.runSeconds = data['run_seconds'];
       this.timer.pauseSeconds = data['pause_seconds'];
     },
-    saveTimer: function() {
-      this.$emit('save-timer', {
+    timerSave: function() {
+      this.stopTimer();
+      this.$emit('timer-save', {
         activity: this.activity,
         timer: this.timer
       });
       this.initializeTimer();
+      this.updateDisplay()
+      this.disableButtons(['pause', 'resume', 'stop', 'save', 'reset']);
     },
+
     // timer logic
     initializeTimer: function () {
       this.timer = {
@@ -365,12 +371,6 @@ Vue.component('time-tracker', {
 
       this.updateDisplay()
       this.disableButtons(['start', 'pause', 'stop']);
-    },
-    saveTimer: function () {
-      this.$emit('save-timer', this.timer);
-      this.initializeTimer();
-      this.updateDisplay()
-      this.disableButtons(['pause', 'resume', 'stop', 'save', 'reset']);
     },
     resetTimer: function () {
       this.timer.startTime = null;
@@ -498,11 +498,32 @@ var app = new Vue({
   },
   methods: {
 
+    // activities
+    activityCreate: function (newActivityName) {
+      this.activities.push({
+        id: this.activities.length,
+        name: newActivityName,
+        timers: {}
+      });
+      this.updateLocalStorage();
+    },
+    activityDelete: function (activity) {
+      this.activities.splice(activity.id, 1);
+      this.updateActivityIds();
+      this.updateLocalStorage();
+    },
+    updateActivityIds: function() {
+      for (let i=0; i < this.activities.length; i++) {
+        this.activities[i].id = i;
+      }
+      this.updateLocalStorage();
+    },
+
     // timers
-    saveTimer: function (obj) {
-        obj['activity'].timers.push({
-          id: timer.startTime,
-          timer: timer
+    timerSave: function (obj) {
+        obj.activity.timers.push({
+          id: obj.timer.startTime,
+          timer: obj.timer
         });
     },
 
@@ -576,27 +597,6 @@ var app = new Vue({
     fetchActivities: function () {
       this.fetchData(this.activityList);
       return this.result;
-    },
-
-    // activities
-    activityCreate: function (newActivityName) {
-      this.activities.push({
-        id: this.activities.length,
-        name: newActivityName,
-        timers: {}
-      });
-      this.updateLocalStorage();
-    },
-    activityDelete: function (activity) {
-      this.activities.splice(activity.id, 1);
-      this.updateActivityIds();
-      this.updateLocalStorage();
-    },
-    updateActivityIds: function() {
-      for (let i=0; i < this.activities.length; i++) {
-        this.activities[i].id = i;
-      }
-      this.updateLocalStorage();
     },
   }
 });
