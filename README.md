@@ -1,2 +1,2 @@
 # vue-time-tracker
-Yet another time tracker frontend, made with Vue.JS
+Yet another time tracker, made with Vue.JS
