@@ -4,7 +4,8 @@
 
     <span class="bold fake-link"
           @click="showActivityTimeTracker = !showActivityTimeTracker">
-      {{ activity.name }}</span>
+      {{ activity.name }}
+    </span>
 
   </span>
 
@@ -32,6 +33,7 @@
 <script>
 export default {
   name: 'Activity',
+  props: ['activity'],
   data: function () {
     return {
       showActivityTimeTracker: true,

@@ -7,8 +7,6 @@
   - track everything in localStorage
 </time-tracker>
 
-put everything in proper vue server (separation of concerns)
-
 <timer>
   - get formattedTime
   - import timer as prop
