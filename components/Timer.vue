@@ -1,14 +1,14 @@
 <template>
   <div class="timer mt-2 ml-4 mb-2">
     <div id="timer-buttons">
-      <button @click="startTimer()" :disabled="startButtonDisabled">start</button>
-      <button @click="pauseTimer()" :disabled="pauseButtonDisabled">pause</button>
-      <button @click="resumeTimer()" :disabled="resumeButtonDisabled">resume</button>
-      <button @click="stopTimer()" :disabled="stopButtonDisabled">stop</button>
-      <button @click="timerSave()" :disabled="saveButtonDisabled">save timer</button>
-      <button @click="showTimerResetPanel = !showTimerResetPanel" :disabled="resetButtonDisabled">reset</button>
+      <button @click="startTimer()" :disabled="startButtonDisabled" class="ml-1">start</button>
+      <button @click="pauseTimer()" :disabled="pauseButtonDisabled" class="ml-1">pause</button>
+      <button @click="resumeTimer()" :disabled="resumeButtonDisabled" class="ml-1">resume</button>
+      <button @click="stopTimer()" :disabled="stopButtonDisabled" class="ml-1">stop</button>
+      <button @click="timerSave()" :disabled="saveButtonDisabled" class="ml-1">save timer</button>
+      <button @click="showTimerResetPanel = !showTimerResetPanel" :disabled="resetButtonDisabled" class="ml-1">reset</button>
 
-      <span id="server-stuff" v-if="timer.startTime" style="margin-top: 1em;">
+      <span id="server-stuff" v-if="showDebugInfo" style="margin-top: 1em;" class="ml-1">
         <button @click="uploadToServer(timer)">Upload to server</button>
       </span>
 
@@ -26,15 +26,6 @@
     <div id="timer-display" style="margin-top: 2em;">{{ formattedTimer }}</div>
 
     <div id="debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
-      <p>id: {{ timer.id }}</p>
-      <p>activity: #{{ activity.id }}: {{ activity.name }}</p>
-      <p>startTime: {{ timer.startTime }}</p>
-      <p>stopTime: {{ timer.stopTime }}</p>
-      <p>lastUpdateTime: {{ timer.lastUpdateTime }}</p>
-      <p>runSeconds: {{ timer.runSeconds }}</p>
-      <p>pauseSeconds: {{ timer.pauseSeconds }}</p>
-      <p>isRunning: {{ timer.isRunning }}</p>
-
       <p style="margin-top: 2em;"><button @click="downloadFromServer()">Download from server</button></p>
       <p>serverPayload: {{ serverPayload }}</p>
     </div>
@@ -78,7 +69,7 @@ export default {
       showTimerResetPanel: false,
 
       serverPayload: undefined,
-      showDebugInfoButton: true,
+      showDebugInfoButton: false,
       showDebugInfo: false,
     };
   },

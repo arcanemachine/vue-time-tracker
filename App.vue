@@ -53,10 +53,9 @@ export default {
     }
   },
   created: function () {
-		this.localStorageFactory();
-    //if (localStorage.getItem('activities')) {
-    //  this.activities = JSON.parse(localStorage['activities']);
-    //}
+    if (localStorage.getItem('activities')) {
+      this.activities = JSON.parse(localStorage['activities']);
+    }
   },
   methods: {
 
@@ -90,69 +89,15 @@ export default {
         Object.assign(savedTimer, timer);
         activity.savedTimers.push({
           id: timer.startTime,
-          timer: savedTimer
+          timer: savedTimer,
+          showDebugInfo: true
         });
-    },
-
-    // factories
-    localStorageFactory: function () {
-      // let activity = this.activityFactory('My Activity');
-      // let timer = this.timerFactory(activity)
-      localStorage['activities'] = JSON.stringify(this.activities);
-    },
-		activityFactory: function (name=undefined) {
-      if (!name) {
-        name = 'Activity ' + String(this.activities.length + 1)
-      }
-      this.activities.push({
-        id: this.activities.length,
-        name: name,
-        timers: []
-      });
-      return this.activities[this.activities.length - 1];
-		},
-    timerFactory: function (activity) {
-			activity.timers.push({
-        timer: {
-          id: activity.timers.length,
-          startTime: null,
-          stopTime: null,
-          lastUpdateTime: null,
-          runSeconds: 0,
-          pauseSeconds: 0,
-          isRunning: false
-        }
-      });
-      return activity.timers[activity.timers.length - 1]
-    },
-    
-    // helper functions
-    getFirstActivity: function () {
-      if (this.activities.length) {
-        return this.activities[0];
-      } else {
-        console.log('No activities have been created');
-        return undefined;
-      }
-    },
-    getLastActivity: function () {
-      return this.activities[this.activities.length - 1];
-    },
-    getFirstTimer: function (activity) {
-      if (activity.timers.length) {
-        return activity.timers[0];
-      } else {
-        console.log('No timers exist for this activity');
-        return undefined;
-      }
-    },
-    getLastTimer: function (activity) {
-      return activity.timers[activity.timers.length - 1];
+        this.updateLocalStorage();
     },
 
     // localStorage
     updateLocalStorage: function () {
-      // localStorage['activities'] = JSON.stringify(this.activities);
+      localStorage['activities'] = JSON.stringify(this.activities);
     },
 
     // fetch

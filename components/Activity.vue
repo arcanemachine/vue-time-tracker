@@ -14,7 +14,8 @@
 
     <div class="mt-3 ml-2">
 
-      <span @click="showSavedTimers = !showSavedTimers"
+      <span v-if="activity.savedTimers"
+            @click="showSavedTimers = !showSavedTimers"
             class="fake-link">
         <span v-if="!showSavedTimers" class="bold">Show Saved Timers</span>
         <span v-if="showSavedTimers" class="bold">Hide Saved Timers</span>
@@ -23,7 +24,17 @@
       <div v-if="showSavedTimers">
         <p class="ml-2">Your saved timers:</p>
         <ol>
-          <li v-for="obj in activity.savedTimers" :key="obj.id">{{ $helpers.getFormattedTime(obj.timer.runSeconds) }}</li>
+          <li v-for="obj in activity.savedTimers"
+              :key="obj.id"
+              @click="obj.showDebugInfo = !obj.showDebugInfo">
+            <span class="mt-1 bold fake-link">
+              {{ $helpers.getFormattedTimerTime(obj.timer.runSeconds) }}
+            </span>
+            <ul v-if="obj.showDebugInfo" class="mt-1 mb-2">
+              <li>Start: {{ getFormattedDate(obj.timer.startTime) }}</li>
+              <li>Finish: {{ getFormattedDate(obj.timer.stopTime) }}</li>
+            </ul>
+          </li>
         </ol>
       </div>
       
@@ -40,19 +51,6 @@
           <button @click="showActivityDeletePanel = false">Cancel</button>
         </span>
       </span>
-    </div>
-
-    <div class="ml-4">
-      <div class="ml-2" v-if="showDetailedTimerInfo">
-        <p>activity: #{{ activity.id }}: {{ activity.name }}</p>
-        <p>timer id: {{ timer.id }}</p>
-        <p>startTime: {{ timer.startTime }}</p>
-        <p>stopTime: {{ timer.stopTime }}</p>
-        <p>lastUpdateTime: {{ timer.lastUpdateTime }}</p>
-        <p>runSeconds: {{ timer.runSeconds }}</p>
-        <p>pauseSeconds: {{ timer.pauseSeconds }}</p>
-        <p>isRunning: {{ timer.isRunning }}</p>
-      </div>
     </div>
 
   </div>
@@ -75,7 +73,11 @@ export default {
     emitActivityDeleteEvent: function () {
       this.$emit('activity-delete', this.activity);
       this.showActivityDeletePanel = false;
-    }
+    },
+    // date formatting
+    getFormattedDate: function (timestamp) {
+      return new Date(timestamp*1000).toLocaleString('en-US', {timeZone: "Canada/Mountain"})
+    },
   }
 }
 </script>

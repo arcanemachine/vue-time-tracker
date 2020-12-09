@@ -14,14 +14,18 @@
            @keyup.enter="emitActivityCreateEvent">
 
     <button id="activity-create__confirm-button"
-            @click="emitActivityCreateEvent">
+            @click="emitActivityCreateEvent"
+            class="ml-1">
       Add activity
     </button>
 
     <button id="activity-create__cancel-button"
-            @click="showActivityCreatePanel = false">
+            @click="showActivityCreatePanel = false"
+            class="ml-1">
       Cancel
     </button>
+
+    <span id="activity-create_info-message" class="ml-1"></span>
 
   </span>
 
@@ -34,14 +38,21 @@ export default {
   data: function () {
     return {
       showActivityCreatePanel: false,
-      newActivityName: ""
+      newActivityName: "",
+      infoMessage: ""
     }
   },
   methods: {
     emitActivityCreateEvent: function () {
+      if (!this.newActivityName) {
+        let infoMessageElement = document.getElementById('activity-create_info-message');
+        infoMessageElement.innerText = "Please enter a name for your activity";
+        return false;
+      }
       this.showActivityCreatePanel = false;
       this.$emit('activity-create', this.newActivityName);
       this.newActivityName = "";
+      this.infoMessage = "";
     }
   }
 }

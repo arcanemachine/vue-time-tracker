@@ -1,11 +1,7 @@
 
-- fix pauseSeconds in running timer
-- save timers to localStorage
 - delete timers
 - use startTime for timer.id
 - use global getCurrentUnixTime instead of local (Timer.vue)
-
-- savedTimer format: MMM DD HH:MM - HH:MM (formattedTime)
 
 <time-tracker>
   - save old timer
