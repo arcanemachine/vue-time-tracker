@@ -172,6 +172,7 @@ export default {
     },
     resumeTimer: function () {
       if (this.timer.isRunning) {return false;}
+      else if (this.timerIsPaused() || this.timerIsStopped()) {this.timer.pauseSeconds += this.getSecondsSinceLastUpdate();}
       this.currentTime = this.getCurrentUnixTime();
       this.elapsedSeconds = this.getSecondsSinceLastUpdate();
       this.timer.lastUpdateTime = this.currentTime;
