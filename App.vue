@@ -17,7 +17,7 @@
               :key="activity.id"
               @activity-delete="activityDelete(activity)">
 
-      <timer :activity="activity" @timer-save="timerSave($event)"></timer>
+      <timer :activity="activity" @timer-save="timerSave($event.activity, $event.timer)"></timer>
 
     </activity>
 
@@ -61,11 +61,14 @@ export default {
   methods: {
 
     // activities
+    getCurrentUnixTime: function () {
+      return Math.floor(Date.now() / 1000);
+    },
     activityCreate: function (newActivityName) {
       this.activities.push({
         id: this.activities.length,
         name: newActivityName,
-        timers: {}
+        savedTimers: []
       });
       this.updateLocalStorage();
     },
@@ -82,10 +85,12 @@ export default {
     },
 
     // timers
-    timerSave: function (obj) {
-        obj.activity.timers.push({
-          id: obj.timer.startTime,
-          timer: obj.timer
+    timerSave: function (activity, timer) {
+        let savedTimer = {};
+        Object.assign(savedTimer, timer);
+        activity.savedTimers.push({
+          id: timer.startTime,
+          timer: savedTimer
         });
     },
 

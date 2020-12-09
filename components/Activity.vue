@@ -12,12 +12,27 @@
   <div v-if="showActivityTimeTracker">
     <slot></slot>
 
-    <div class="activity-delete mt-3">
-      <span class="bold fake-link"
-            style="margin-left: 1em;"
-            @click="showActivityDeletePanel = !showActivityDeletePanel">
-        Delete</span>
+    <div class="mt-3 ml-2">
 
+      <span @click="showSavedTimers = !showSavedTimers"
+            class="fake-link">
+        <span v-if="!showSavedTimers" class="bold">Show Saved Timers</span>
+        <span v-if="showSavedTimers" class="bold">Hide Saved Timers</span>
+      </span>
+
+      <div v-if="showSavedTimers">
+        <p class="ml-2">Your saved timers:</p>
+        <ol>
+          <li v-for="obj in activity.savedTimers" :key="obj.id">{{ $helpers.getFormattedTime(obj.timer.runSeconds) }}</li>
+        </ol>
+      </div>
+      
+    </div>
+
+    <div class="activity-delete mt-3">
+      <span class="bold fake-link ml-2"
+            @click="showActivityDeletePanel = !showActivityDeletePanel">
+        Delete Activity</span>
       <span v-if="showActivityDeletePanel"> 
         <span class="activity-confirm-delete">
           <span class="ml-2">Are you sure?</span>
@@ -26,7 +41,8 @@
         </span>
       </span>
     </div>
-    <div class="mt-2 ml-4">
+
+    <div class="ml-4">
       <div class="ml-2" v-if="showDetailedTimerInfo">
         <p>activity: #{{ activity.id }}: {{ activity.name }}</p>
         <p>timer id: {{ timer.id }}</p>
@@ -38,6 +54,7 @@
         <p>isRunning: {{ timer.isRunning }}</p>
       </div>
     </div>
+
   </div>
 </div>
 </template>
@@ -51,8 +68,7 @@ export default {
       showActivityTimeTracker: true,
       showActivityDeletePanel: false,
       showDetailedTimerInfo: false,
-      currentTimer: [],
-      savedTimers: [],
+      showSavedTimers: true,
     }
   },
   methods: {

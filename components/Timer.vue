@@ -8,20 +8,22 @@
       <button @click="timerSave()" :disabled="saveButtonDisabled">save timer</button>
       <button @click="showTimerResetPanel = !showTimerResetPanel" :disabled="resetButtonDisabled">reset</button>
 
+      <span id="server-stuff" v-if="timer.startTime" style="margin-top: 1em;">
+        <button @click="uploadToServer(timer)">Upload to server</button>
+      </span>
+
       <span v-if="showTimerResetPanel" class="ml-2">
         Are you sure?
         <button class="ml-2" @click="resetTimer()">Yes</button>
         <button @click="showTimerResetPanel = !showTimerResetPanel">Cancel</button>
       </span>
 
-      <button v-if="showDebugInfoButton" @click="showDebugInfo = !showDebugInfo">show/hide debug</button>
+      <button v-if="showDebugInfoButton" @click="showDebugInfo = !showDebugInfo">debug info</button>
+
     </div>
+
 
     <div id="timer-display" style="margin-top: 2em;">{{ formattedTimer }}</div>
-
-    <div id="server-stuff" v-if="timer.startTime" style="margin-top: 1em;">
-      <button @click="uploadToServer(timer)">Upload to server</button>
-    </div>
 
     <div id="debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
       <p>id: {{ timer.id }}</p>
@@ -46,15 +48,15 @@ export default {
   props: ['activity'],
   data: function () {
     return {
+      // props
+      userId: 1,
+      timerId: 1,
+
       formattedTimer: '00:00:00',
       currentTime: 0,
 
       elapsedSeconds: 0,
       polling: null,
-
-      // props
-      userId: 1,
-      timerId: 1,
 
       timer: {
         id: null,
@@ -63,7 +65,7 @@ export default {
         lastUpdateTime: null,
         runSeconds: 0,
         pauseSeconds: 0,
-        isRunning: false
+        isRunning: false,
       },
 
       startButtonDisabled: false,
@@ -138,26 +140,24 @@ export default {
 
     // timer logic
     initializeTimer: function () {
-      this.timer = {
-        id: null,
-        startTime: null,
-        stopTime: null,
-        lastUpdateTime: null,
-        runSeconds: 0,
-        pauseSeconds: 0,
-        isRunning: false
-      };
-      return this.timer;
+      // deleteme
+      this.timer.startTime = null;
+      this.timer.stopTime = null;
+      this.timer.lastUpdateTime = null;
+      this.timer.runSeconds = 0;
+      this.timer.pauseSeconds = 0;
+      this.timer.isRunning = false;
     },
     startTimer: function () {
       if (this.timer.isRunning) {return undefined;}
       this.timer.startTime = this.getCurrentUnixTime();
+      this.timer.id = this.timer.startTime;
       this.timer.lastUpdateTime = this.timer.startTime;
 
       this.timer.isRunning = true;
       this.polling = setInterval(() => {return this.updateDisplay()}, 200);
 
-      this.disableButtons(['start', 'resume']);
+      this.disableButtons(['start', 'resume', 'save']);
     },
     pauseTimer: function () {
       if (this.timerIsStopped() || this.timerIsPaused()) {return undefined;}
@@ -168,7 +168,7 @@ export default {
       clearInterval(this.polling);
       this.updateDisplay()
 
-      this.disableButtons(['start', 'pause']);
+      this.disableButtons(['start', 'pause', 'save']);
     },
     resumeTimer: function () {
       if (this.timer.isRunning) {return false;}
@@ -181,7 +181,7 @@ export default {
       this.updateDisplay()
       this.polling = setInterval(() => {return this.updateDisplay()}, 200);
 
-      this.disableButtons(['start', 'resume']);
+      this.disableButtons(['start', 'resume', 'save']);
     },
     stopTimer: function () {
       if (this.timerIsStopped()) {return undefined;}
@@ -206,7 +206,7 @@ export default {
 
       this.updateDisplay()
       this.showTimerResetPanel = false;
-      this.disableButtons(['pause', 'resume', 'stop', 'reset']);
+      this.disableButtons(['pause', 'resume', 'stop', 'save', 'reset']);
     },
     getTimestamp: function (time) {
       return Math.floor(time / 1000);
