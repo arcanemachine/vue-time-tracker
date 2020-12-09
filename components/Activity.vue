@@ -26,6 +26,18 @@
         </span>
       </span>
     </div>
+    <div class="mt-2 ml-4">
+      <div class="ml-2" v-if="showDetailedTimerInfo">
+        <p>activity: #{{ activity.id }}: {{ activity.name }}</p>
+        <p>timer id: {{ timer.id }}</p>
+        <p>startTime: {{ timer.startTime }}</p>
+        <p>stopTime: {{ timer.stopTime }}</p>
+        <p>lastUpdateTime: {{ timer.lastUpdateTime }}</p>
+        <p>runSeconds: {{ timer.runSeconds }}</p>
+        <p>pauseSeconds: {{ timer.pauseSeconds }}</p>
+        <p>isRunning: {{ timer.isRunning }}</p>
+      </div>
+    </div>
   </div>
 </div>
 </template>
@@ -37,7 +49,10 @@ export default {
   data: function () {
     return {
       showActivityTimeTracker: true,
-      showActivityDeletePanel: false
+      showActivityDeletePanel: false,
+      showDetailedTimerInfo: false,
+      currentTimer: [],
+      savedTimers: [],
     }
   },
   methods: {

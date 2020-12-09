@@ -1,3 +1,6 @@
+- merge timer+timetracker
+- delete timers
+
 <time-tracker>
   - save old timer
     - currently broken: fix obj

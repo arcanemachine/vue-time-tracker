@@ -17,15 +17,7 @@
               :key="activity.id"
               @activity-delete="activityDelete(activity)">
 
-      <timer v-for="timer in activity.timers"
-             :activity="activity"
-             :timer="timer"
-             :key="timer.id">
-      </timer>
-
-      <time-tracker :activity="activity"
-                    @timer-save="timerSave($event)">
-      </time-tracker>
+      <timer :activity="activity" @timer-save="timerSave($event)"></timer>
 
     </activity>
 
@@ -43,12 +35,11 @@
 import AddActivity from './components/AddActivity.vue'
 import Activity from './components/Activity.vue'
 import Timer from './components/Timer.vue'
-import TimeTracker from './components/TimeTracker.vue'
 
 export default {
   name: 'App',
   components: {
-    AddActivity, Activity, Timer, TimeTracker
+    AddActivity, Activity, Timer
   },
   data: function () {
     return {
