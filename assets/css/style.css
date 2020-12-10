@@ -108,6 +108,22 @@ body {
   margin-right: 2em;
 }
 
+.mr-5 {
+  margin-right: 2.5em;
+}
+
+.mr-6 {
+  margin-right: 3em;
+}
+
+.mb-5 {
+  margin-bottom: 2.5em;
+}
+
+.mb-6 {
+  margin-bottom: 3em;
+}
+
 .mb-0 {
   margin-bottom: 0em;
 }
@@ -128,7 +144,7 @@ body {
   margin-bottom: 2em;
 }
 
-.mb-4 {
+.mb-5 {
   margin-bottom: 2.5em;
 }
 
@@ -154,4 +170,12 @@ body {
 
 .ml-4 {
   margin-left: 2em;
+}
+
+.ml-5 {
+  margin-left: 2.5em;
+}
+
+.ml-6 {
+  margin-left: 3em;
 }
