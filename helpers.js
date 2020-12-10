@@ -1,4 +1,7 @@
 export const helpers = {
+  sleep: function (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  },
   zeroPadder: function (yourNumber, minLength=2) {
     // get the minimum length of the result
     let sliceLength = minLength;

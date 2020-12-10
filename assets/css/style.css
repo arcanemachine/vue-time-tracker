@@ -6,8 +6,8 @@ ul {
 
 #notification-message {
   /* div */
-  position: absolute;
-  bottom: 15%;
+  position: fixed;
+  bottom: 10%;
   left: 0;
   right: 0;
   margin-left: auto;
@@ -21,6 +21,7 @@ ul {
 
   /* text */
   text-align: center;
+  font-size: 1.2rem;
   font-weight: bold;
   color: beige;
   display: inline-block;
