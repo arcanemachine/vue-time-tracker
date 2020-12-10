@@ -28,7 +28,7 @@
         </p>
         <ol>
 
-          <li v-for="obj in activity.savedTimers"
+          <li v-for="obj in activity.savedTimers.slice().reverse()"
               :key="obj.id"
               class="mb-1">
 
