@@ -7,29 +7,31 @@
     Add new activity
   </span>
 
-  <span id="activity-create__panel"
-        v-if="showActivityCreatePanel">
+  <transition name="fade">
+    <span id="activity-create__panel"
+          v-if="showActivityCreatePanel">
 
-    <input type="text"
-           id="activity-create__text-input"
-           v-model="newActivityName"
-           @keyup.enter="emitActivityCreateEvent">
+      <input type="text"
+             id="activity-create__text-input"
+             v-model="newActivityName"
+             @keyup.enter="emitActivityCreateEvent">
 
-    <button id="activity-create__confirm-button"
-            @click="emitActivityCreateEvent"
-            class="ml-1">
-      Add activity
-    </button>
+      <button id="activity-create__confirm-button"
+              @click="emitActivityCreateEvent"
+              class="ml-1">
+        Add activity
+      </button>
 
-    <button id="activity-create__cancel-button"
-            @click="showActivityCreatePanel = false"
-            class="ml-1">
-      Cancel
-    </button>
+      <button id="activity-create__cancel-button"
+              @click="showActivityCreatePanel = false"
+              class="ml-1">
+        Cancel
+      </button>
 
-    <span id="activity-create_info-message" class="ml-1"></span>
+      <span id="activity-create_info-message" class="ml-1"></span>
 
-  </span>
+    </span>
+  </transition>
 
 </div>
 </template>

@@ -14,11 +14,13 @@
 
       <div class="timer-numbers mt-2 mb-1 bold">{{ formattedTimer }}</div>
 
-      <div v-if="showTimerResetPanel" class="timer-confirm-panel">
-        Are you sure you want to delete this timer?
-        <button @click="resetTimer()" class="smaller timer-button">Yes</button>
-        <button @click="showTimerResetPanel = !showTimerResetPanel" class="smaller timer-button">Cancel</button>
-      </div>
+      <transition name="fade">
+        <div v-if="showTimerResetPanel" class="timer-confirm-panel">
+          Are you sure you want to delete this timer?
+          <button @click="resetTimer()" class="smaller timer-button">Yes</button>
+          <button @click="showTimerResetPanel = !showTimerResetPanel" class="smaller timer-button">Cancel</button>
+        </div>
+        </transition>
 
       <button v-if="showDebugInfoButton" @click="showDebugInfo = !showDebugInfo">debug info</button>
 

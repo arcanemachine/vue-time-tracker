@@ -123,7 +123,7 @@ export default {
         activity.savedTimers.push({
           id: timer.startTime,
           timer: savedTimer,
-          showTimerDetail: true,
+          showTimerDetail: false,
           showDeletePanel: false
         });
         this.updateLocalStorage();

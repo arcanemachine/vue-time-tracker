@@ -135,7 +135,7 @@ export default {
       newActivityName: "",
       showActivityDeletePanel: false,
       showDetailedTimerInfo: false,
-      showSavedTimers: true,
+      showSavedTimers: false,
     }
   },
   methods: {

@@ -1,20 +1,16 @@
 
-- clear all timers
-
 - daily totals
 - weekly totals
 
-- graphs
+- move unnecessary values out of activity object
 
-- show today's timers for day (option?)
+- graphs
 
 - integrate with server
 
 - upload to server
     - deduplication: use start time
 - get id from server, add to browser timer object
-
-- use django timer API
 
 - integrate with user accounts
 
