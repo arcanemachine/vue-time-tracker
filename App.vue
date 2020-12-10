@@ -15,7 +15,8 @@
     <activity v-for="activity in activities"
               :activity="activity"
               :key="activity.id"
-              @activity-delete="activityDelete(activity)">
+              @activity-delete="activityDelete(activity)"
+              @saved-timer-delete="savedTimerDelete(activity, $event)">
 
       <timer :activity="activity" @timer-save="timerSave($event.activity, $event.timer)"></timer>
 
@@ -90,9 +91,15 @@ export default {
         activity.savedTimers.push({
           id: timer.startTime,
           timer: savedTimer,
-          showDebugInfo: true
+          showTimerDetail: true,
+          showDeletePanel: false
         });
         this.updateLocalStorage();
+    },
+    savedTimerDelete: function (activity, timerId) {
+      let timerIndex = activity.savedTimers.findIndex(x => x.id === timerId);
+      activity.savedTimers.splice(timerIndex, 1);
+      this.updateLocalStorage();
     },
 
     // localStorage

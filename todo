@@ -1,6 +1,6 @@
 
-- delete timers
 - use startTime for timer.id
+- clear all
 - use global getCurrentUnixTime instead of local (Timer.vue)
 
 <time-tracker>

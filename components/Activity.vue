@@ -22,18 +22,53 @@
       </span>
 
       <div v-if="showSavedTimers">
-        <p class="ml-2">Your saved timers:</p>
+        <p class="ml-2">
+          <span v-if="activity.savedTimers.length">Your saved timers:</span>
+          <span v-else>You have no saved timers for this activity.</span>
+        </p>
         <ol>
+
           <li v-for="obj in activity.savedTimers"
               :key="obj.id"
-              @click="obj.showDebugInfo = !obj.showDebugInfo">
-            <span class="mt-1 bold fake-link">
+              class="mb-1">
+
+            <span class="mt-1 bold fake-link"
+              @click="obj.showTimerDetail = !obj.showTimerDetail">
               {{ $helpers.getFormattedTimerTime(obj.timer.runSeconds) }}
             </span>
-            <ul v-if="obj.showDebugInfo" class="mt-1 mb-2">
-              <li>Start: {{ getFormattedDate(obj.timer.startTime) }}</li>
-              <li>Finish: {{ getFormattedDate(obj.timer.stopTime) }}</li>
-            </ul>
+
+            <div v-if="obj.showTimerDetail">
+
+              <ul class="mt-1">
+                <li>Start: {{ getFormattedDate(obj.timer.startTime) }}</li>
+                <li>Finish: {{ getFormattedDate(obj.timer.stopTime) }}</li>
+              </ul>
+
+              <div class="mt-1 mb-2 ml-5">
+
+                <span @click="obj.showDeletePanel = !obj.showDeletePanel"
+                      class="bold fake-link">
+                  Delete
+                </span>
+
+                <span v-if="obj.showDeletePanel">
+                  <span>Are you sure?</span>
+
+                  <button @click="emitSavedTimerDeleteEvent(obj.timer.id)"
+                          class="ml-1">
+                    Yes
+                  </button>
+
+                  <button @click="obj.showDeletePanel = false"
+                          class="ml-1">
+                    No
+                  </button>
+
+                </span>
+
+              </div>
+
+            </div>
           </li>
         </ol>
       </div>
@@ -78,6 +113,9 @@ export default {
     getFormattedDate: function (timestamp) {
       return new Date(timestamp*1000).toLocaleString('en-US', {timeZone: "Canada/Mountain"})
     },
+    emitSavedTimerDeleteEvent: function (timerId) {
+      this.$emit('saved-timer-delete', timerId);
+    }
   }
 }
 </script>
