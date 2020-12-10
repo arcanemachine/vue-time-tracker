@@ -42,6 +42,7 @@
               <ul class="mt-1">
                 <li>Start: {{ getFormattedDate(obj.timer.startTime) }}</li>
                 <li>Finish: {{ getFormattedDate(obj.timer.stopTime) }}</li>
+                <li class="mt-1">Time Paused: {{ $helpers.getFormattedTimerTime(obj.timer.pauseSeconds) }}</li>
               </ul>
 
               <div class="mt-1 mb-2 ml-5">

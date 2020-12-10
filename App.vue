@@ -22,6 +22,7 @@
 
     </activity>
 
+		<div @click="downloadTimerData" class="mt-4 ml-2 bold fake-link">Download timer data</div>
 
     <transition name="fade">
       <div id="notification-message" v-if="showNotificationMessage" :style="notificationStyle">Test Message</div>
@@ -53,9 +54,11 @@ export default {
       },
     }
   },
-  created: function () {
+  mounted: function () {
     if (localStorage.getItem('activities')) {
       this.activities = JSON.parse(localStorage['activities']);
+    } else {
+      localStorage['activities'] = [];
     }
   },
   methods: {
@@ -106,6 +109,16 @@ export default {
     updateLocalStorage: function () {
       localStorage['activities'] = JSON.stringify(this.activities);
     },
+		downloadTimerData: function () {
+			var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.activities));
+			var downloadAnchorNode = document.createElement('a');
+			downloadAnchorNode.setAttribute("href",     dataStr);
+			downloadAnchorNode.setAttribute("download", "timerData.json");
+			document.body.appendChild(downloadAnchorNode); // required for firefox
+			downloadAnchorNode.click();
+			downloadAnchorNode.remove();
+		},
+
 
     // fetch
     fetchData: function(url) {

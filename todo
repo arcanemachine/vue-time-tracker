@@ -1,16 +1,9 @@
 
 - use startTime for timer.id
 - clear all
-- use global getCurrentUnixTime instead of local (Timer.vue)
 
-<time-tracker>
-  - save old timer
-    - currently broken: fix obj
-  - recognize old timers
-  - sort timers
-  - use startTime as id?
-  - track everything in localStorage
-</time-tracker>
+- show timers by day (option?)
+- 
 
 <timer>
   - get formattedTime
