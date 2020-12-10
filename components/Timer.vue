@@ -1,31 +1,31 @@
 <template>
-  <div class="timer mt-2 ml-4 mb-2">
-    <div id="timer-buttons">
-      <button @click="startTimer()" :disabled="startButtonDisabled" class="ml-1">start</button>
-      <button @click="pauseTimer()" :disabled="pauseButtonDisabled" class="ml-1">pause</button>
-      <button @click="resumeTimer()" :disabled="resumeButtonDisabled" class="ml-1">resume</button>
-      <button @click="stopTimer()" :disabled="stopButtonDisabled" class="ml-1">stop</button>
-      <button @click="timerSave()" :disabled="saveButtonDisabled" class="ml-1">save timer</button>
-      <button @click="showTimerResetPanel = !showTimerResetPanel" :disabled="resetButtonDisabled" class="ml-1">reset</button>
+  <div class="timer-display mt-2 ml-4 mb-2">
+    <div id="timer-buttons" class="mt-1 mb-1">
+      <button @click="startTimer()" :disabled="startButtonDisabled" class="ml-1 timer-button">start</button>
+      <button @click="pauseTimer()" :disabled="pauseButtonDisabled" class="ml-1 timer-button">pause</button>
+      <button @click="resumeTimer()" :disabled="resumeButtonDisabled" class="ml-1 timer-button">resume</button>
+      <button @click="stopTimer()" :disabled="stopButtonDisabled" class="ml-1 timer-button">stop</button>
+      <button @click="timerSave()" :disabled="saveButtonDisabled" class="ml-1 timer-button">save timer</button>
+      <button @click="showTimerResetPanel = !showTimerResetPanel" :disabled="resetButtonDisabled" class="ml-1 timer-button">delete timer</button>
 
       <span id="server-stuff" v-if="showDebugInfo" style="margin-top: 1em;" class="ml-1">
         <button @click="uploadToServer(timer)">Upload to server</button>
       </span>
 
-      <span v-if="showTimerResetPanel" class="ml-2">
-        Are you sure?
-        <button class="ml-2" @click="resetTimer()">Yes</button>
-        <button @click="showTimerResetPanel = !showTimerResetPanel">Cancel</button>
-      </span>
+      <div class="timer-numbers mt-2 mb-1 bold">{{ formattedTimer }}</div>
+
+      <div v-if="showTimerResetPanel" class="timer-confirm-panel">
+        Are you sure you want to delete this timer?
+        <button @click="resetTimer()" class="smaller timer-button">Yes</button>
+        <button @click="showTimerResetPanel = !showTimerResetPanel" class="smaller timer-button">Cancel</button>
+      </div>
 
       <button v-if="showDebugInfoButton" @click="showDebugInfo = !showDebugInfo">debug info</button>
 
     </div>
 
 
-    <div id="timer-display" style="margin-top: 2em;">{{ formattedTimer }}</div>
-
-    <div id="debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
+    <div class="timer-debug-info" v-show="showDebugInfo" style="margin-top: 2em;">
       <p style="margin-top: 2em;"><button @click="downloadFromServer()">Download from server</button></p>
       <p>serverPayload: {{ serverPayload }}</p>
     </div>
@@ -139,13 +139,7 @@ export default {
       this.timer.pauseSeconds = 0;
       this.timer.isRunning = false;
     },
-    startTimer: function () {
-      if (this.timer.isRunning) {return undefined;}
-      this.timer.startTime = this.getCurrentUnixTime();
-      this.timer.id = this.timer.startTime;
-      this.timer.lastUpdateTime = this.timer.startTime;
-
-      this.timer.isRunning = true;
+    startTimer: function () { if (this.timer.isRunning) {return undefined;} this.timer.startTime = this.getCurrentUnixTime(); this.timer.id = this.timer.startTime; this.timer.lastUpdateTime = this.timer.startTime; this.timer.isRunning = true;
       this.polling = setInterval(() => {return this.updateDisplay()}, 200);
 
       this.disableButtons(['start', 'resume', 'save']);

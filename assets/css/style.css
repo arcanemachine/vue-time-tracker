@@ -27,6 +27,44 @@ ul {
   line-height: 3em;
 }
 
+.timer-display {
+  display: inline-block;
+  background-color: #DDD;
+  padding: 0.5em;
+  border-radius: 12px;
+}
+
+.timer-button {
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0.5em;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+.timer-confirm-panel {
+  font-size: 1.2rem;
+  width: 100%;
+  margin-top: 1em;
+  text-align: center;
+}
+
+.timer-numbers {
+  font-size: 1.35rem;
+  text-align: center;
+}
+
+.bigger {
+  transform: scale(1.25);
+}
+
+.smaller {
+  transform: scale(0.75);
+}
+
+
 /* transitions */
 
 .fade-enter-active, .fade-leave-active {
@@ -36,6 +74,7 @@ ul {
 .fade-enter, .fade-leave-to {
   opacity: 0;
 }
+
 
 /* boilerplate */
 
@@ -52,7 +91,7 @@ body {
   font-weight: bold;
 }
 
-.fake-link {
+.cursor-url {
   cursor: pointer;
 }
 
@@ -60,7 +99,10 @@ body {
   text-decoration: underline;
 }
 
-.unstyled-list {
+
+/* Bootstrap-y stuff */
+
+.list-unstyled {
   list-style-type: none;
 }
 
@@ -90,6 +132,10 @@ body {
 
 .mt-6 {
   margin-top: 3em;
+}
+
+.mr-auto {
+  margin-right: auto;
 }
 
 .mr-0 {
@@ -156,6 +202,10 @@ body {
   margin-bottom: 3em;
 }
 
+.ml-auto {
+  margin-left: auto;
+}
+
 .ml-0 {
   margin-left: 0em;
 }
@@ -182,4 +232,8 @@ body {
 
 .ml-6 {
   margin-left: 3em;
+}
+
+.text-center {
+  text-align: center;
 }

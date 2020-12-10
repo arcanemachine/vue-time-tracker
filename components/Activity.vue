@@ -2,7 +2,7 @@
 <div class="mt-3">
   <span>{{ activity.id + 1 }}.
 
-    <span class="bold fake-link"
+    <span class="bold cursor-url"
           @click="showActivityTimeTracker = !showActivityTimeTracker">
       {{ activity.name }}
     </span>
@@ -58,14 +58,15 @@
 
       <span v-if="activity.savedTimers"
             @click="showSavedTimers = !showSavedTimers"
-            class="fake-link">
-        <span v-if="!showSavedTimers" class="bold">Show Saved Timers</span>
-        <span v-if="showSavedTimers" class="bold">Hide Saved Timers</span>
+            class="cursor-url">
+        <button v-if="!showSavedTimers" class="bold">Show saved timers</button>
       </span>
 
       <div v-if="showSavedTimers">
         <p class="ml-2">
-          <span v-if="activity.savedTimers.length">Your saved timers:</span>
+          <span v-if="activity.savedTimers.length" class="bold">Your saved timers:
+            <button v-if="showSavedTimers" @click="showSavedTimers = !showSavedTimers">Hide</button>
+          </span>
           <span v-else>You have no saved timers for this activity.</span>
         </p>
         <ol>
@@ -74,7 +75,7 @@
               :key="obj.id"
               class="mb-2">
 
-            <span class="mt-1 bold fake-link"
+            <span class="mt-1 bold cursor-url"
               @click="obj.showTimerDetail = !obj.showTimerDetail">
               {{ $helpers.getFormattedTimerTime(obj.timer.runSeconds) }}
             </span>
@@ -90,7 +91,7 @@
               <div class="mt-1 mb-2 ml-3">
 
                 <button @click="obj.showDeletePanel = !obj.showDeletePanel"
-                      class="bold fake-link">
+                      class="mt-1 mb-1 bold cursor-url">
                   Delete this timer
                 </button>
 

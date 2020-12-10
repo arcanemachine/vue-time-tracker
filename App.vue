@@ -24,7 +24,7 @@
 
     <h2 class="mt-4">Extra Links:</h2>
     <ul>
-      <li @click="downloadTimerData" class="mt-2 ml-2 bold fake-link">Download timer data</li>
+      <li @click="downloadTimerData" class="mt-2 ml-2 bold cursor-url">Download timer data</li>
     </ul>
 
     <transition name="fade">

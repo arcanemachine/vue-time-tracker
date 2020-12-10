@@ -2,7 +2,7 @@
 <div class="mt-4 mb-4">
 
   <span @click="showActivityCreatePanel = !showActivityCreatePanel"
-        class="bold fake-link"
+        class="bold cursor-url"
         style="font-size: 1.25em;">
     Add new activity
   </span>
