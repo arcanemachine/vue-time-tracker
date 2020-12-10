@@ -7,6 +7,48 @@
       {{ activity.name }}
     </span>
 
+    <button @click="showActivityModifyPanel = !showActivityModifyPanel"
+            v-if="showActivityTimeTracker"
+            class="ml-1 mr-1">
+      Edit this Activity
+    </button>
+
+    <span v-if="showActivityModifyPanel">
+
+      <button v-if="!showActivityUpdateNamePanel" @click="showActivityUpdateNamePanel = !showActivityUpdateNamePanel" class="ml-2">Change Name</button>
+      <span v-if="showActivityUpdateNamePanel">
+        <span class="ml-2">New name: </span>
+        <input type="text"
+               @keyup.enter="activityUpdateName"
+               v-model="newActivityName">
+        <button @click="activityUpdateName" class="ml-1">Confirm</button>
+        <button @click="showActivityUpdateNamePanel = false" class="ml-1">Cancel</button>
+      </span>
+
+      <button v-if="!showActivityDeletePanel"
+              @click="showActivityDeletePanel = !showActivityDeletePanel"
+              class="ml-2">
+
+        Delete Activity</button>
+      <span v-if="showActivityDeletePanel">
+
+          <span class="ml-3">Are you sure you want to delete this activity?</span>
+
+          <button @click="emitActivityDeleteEvent"
+                  class="ml-1">
+            Confirm
+          </button>
+
+          <button @click="showActivityDeletePanel = false"
+                  class="ml-1">
+            Cancel
+          </button>
+
+      </span>
+
+    </span>
+
+
   </span>
 
   <div v-if="showActivityTimeTracker">
@@ -30,7 +72,7 @@
 
           <li v-for="obj in activity.savedTimers.slice().reverse()"
               :key="obj.id"
-              class="mb-1">
+              class="mb-2">
 
             <span class="mt-1 bold fake-link"
               @click="obj.showTimerDetail = !obj.showTimerDetail">
@@ -45,15 +87,15 @@
                 <li class="mt-1">Time Paused: {{ $helpers.getFormattedTimerTime(obj.timer.pauseSeconds) }}</li>
               </ul>
 
-              <div class="mt-1 mb-2 ml-5">
+              <div class="mt-1 mb-2 ml-3">
 
-                <span @click="obj.showDeletePanel = !obj.showDeletePanel"
+                <button @click="obj.showDeletePanel = !obj.showDeletePanel"
                       class="bold fake-link">
-                  Delete
-                </span>
+                  Delete this timer
+                </button>
 
                 <span v-if="obj.showDeletePanel">
-                  <span>Are you sure?</span>
+                  <span class="ml-2">Are you sure?</span>
 
                   <button @click="emitSavedTimerDeleteEvent(obj.timer.id)"
                           class="ml-1">
@@ -76,19 +118,6 @@
       
     </div>
 
-    <div class="activity-delete mt-3">
-      <span class="bold fake-link ml-2"
-            @click="showActivityDeletePanel = !showActivityDeletePanel">
-        Delete Activity</span>
-      <span v-if="showActivityDeletePanel"> 
-        <span class="activity-confirm-delete">
-          <span class="ml-2">Are you sure?</span>
-          <button @click="emitActivityDeleteEvent">Delete '{{ activity.name }}'</button>
-          <button @click="showActivityDeletePanel = false">Cancel</button>
-        </span>
-      </span>
-    </div>
-
   </div>
 </div>
 </template>
@@ -100,12 +129,28 @@ export default {
   data: function () {
     return {
       showActivityTimeTracker: true,
+      showActivityModifyPanel: false,
+      showActivityUpdateNamePanel: false,
+      newActivityName: "",
       showActivityDeletePanel: false,
       showDetailedTimerInfo: false,
       showSavedTimers: true,
     }
   },
   methods: {
+    // update activity
+    activityUpdateName: function () {
+      if (!this.newActivityName) {
+        return false;
+      }
+      this.activity.name = this.newActivityName;
+      this.newActivityName = "";
+      this.showActivityUpdateNamePanel = false;
+      this.showActivityModifyPanel = false;
+      this.showActivityDeletePanel = false;
+      this.$emit('activity-update', this.activity);
+    },
+    // delete activity
     emitActivityDeleteEvent: function () {
       this.$emit('activity-delete', this.activity);
       this.showActivityDeletePanel = false;

@@ -1,7 +1,9 @@
 <template>
 <div class="mt-4 mb-4">
 
-  <span class="bold fake-link" @click="showActivityCreatePanel = !showActivityCreatePanel">
+  <span @click="showActivityCreatePanel = !showActivityCreatePanel"
+        class="bold fake-link"
+        style="font-size: 1.25em;">
     Add new activity
   </span>
 

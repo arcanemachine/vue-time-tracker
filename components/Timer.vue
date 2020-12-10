@@ -151,7 +151,7 @@ export default {
       this.disableButtons(['start', 'resume', 'save']);
     },
     pauseTimer: function () {
-      if (this.timerIsStopped() || this.timerIsPaused()) {return undefined;}
+      if (this.isStopped() || this.isPaused()) {return undefined;}
       this.timer.runSeconds += this.getSecondsSinceLastUpdate();
       this.timer.lastUpdateTime = this.getCurrentUnixTime();
 
@@ -163,7 +163,7 @@ export default {
     },
     resumeTimer: function () {
       if (this.timer.isRunning) {return false;}
-      else if (this.timerIsPaused() || this.timerIsStopped()) {this.timer.pauseSeconds += this.getSecondsSinceLastUpdate();}
+      else if (this.isPaused() || this.isStopped()) {this.timer.pauseSeconds += this.getSecondsSinceLastUpdate();}
       this.currentTime = this.getCurrentUnixTime();
       this.elapsedSeconds = this.getSecondsSinceLastUpdate();
       this.timer.lastUpdateTime = this.currentTime;
@@ -176,8 +176,8 @@ export default {
       this.disableButtons(['start', 'resume', 'save']);
     },
     stopTimer: function () {
-      if (this.timerIsStopped()) {return undefined;}
-      else if (this.timerIsPaused()) {this.timer.pauseSeconds += this.getSecondsSinceLastUpdate();}
+      if (this.isStopped()) {return undefined;}
+      else if (this.isPaused()) {this.timer.pauseSeconds += this.getSecondsSinceLastUpdate();}
       else if (this.timer.isRunning) {this.timer.runSeconds += this.getSecondsSinceLastUpdate();}
       this.timer.stopTime = this.getCurrentUnixTime();
       this.timer.lastUpdateTime = this.timer.stopTime;
@@ -212,11 +212,11 @@ export default {
     getSecondsSinceLastUpdate: function () {
       return (this.getCurrentUnixTime() - this.timer.lastUpdateTime);
     },
-    timerIsPaused: function () {
+    isPaused: function () {
       if (this.timer.lastUpdateTime !== this.timer.stopTime && !this.timer.isRunning) {return true;}
       else {return false;}
     },
-    timerIsStopped: function () {
+    isStopped: function () {
       if (this.timer.lastUpdateTime === this.timer.stopTime && !this.timer.isRunning) {return true;}
       else {return false;}
     },

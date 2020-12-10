@@ -1,10 +1,9 @@
 <template>
   <div id="app">
-      <h1 style="text-align: center; margin-bottom: 1em;">Vue - Time Tracker</h1>
 
+		<h1 style="text-align: center; margin-bottom: 1em;">Vue - Time Tracker</h1>
 
-    <h2>Activities</h2>
-
+    <h1>Activities</h1>
 
     <p v-if="!activities.length" class="mt-2 mb-4">
       You have not created any activities.
@@ -16,13 +15,17 @@
               :activity="activity"
               :key="activity.id"
               @activity-delete="activityDelete(activity)"
+							@activity-update="activityUpdate($event)"
               @saved-timer-delete="savedTimerDelete(activity, $event)">
 
       <timer :activity="activity" @timer-save="timerSave($event.activity, $event.timer)"></timer>
 
     </activity>
 
-		<div @click="downloadTimerData" class="mt-4 ml-2 bold fake-link">Download timer data</div>
+    <h2 class="mt-4">Extra Links:</h2>
+    <ul>
+      <li @click="downloadTimerData" class="mt-2 ml-2 bold fake-link">Download timer data</li>
+    </ul>
 
     <transition name="fade">
       <div id="notification-message" v-if="showNotificationMessage" :style="notificationStyle">Test Message</div>
@@ -75,6 +78,10 @@ export default {
       });
       this.updateLocalStorage();
     },
+		activityUpdate: function (activity) {
+      this.activities[activity.id] = activity;
+      this.updateLocalStorage();
+		},
     activityDelete: function (activity) {
       this.activities.splice(activity.id, 1);
       this.updateActivityIds();

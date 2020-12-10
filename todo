@@ -1,27 +1,19 @@
 
-- use startTime for timer.id
-- clear all
+- clear all timers
 
-- show timers by day (option?)
-- 
+- daily totals
+- weekly totals
 
-<timer>
-  - get formattedTime
-  - import timer as prop
-    - show useful info
-    - click timer to expand/get more info
-    - sort by day?
-</timer>
+- graphs
 
-    - work with existing timer until new one is created (timer.hasStopTime && startButton.pressed)
+- show today's timers for day (option?)
+
 - integrate with server
 
 - upload to server
     - deduplication: use start time
 - get id from server, add to browser timer object
 
-- add timers per category
-- save to/from localStorage
 - use django timer API
 
 - integrate with user accounts
