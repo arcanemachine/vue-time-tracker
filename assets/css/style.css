@@ -1,9 +1,5 @@
 /* project-specific stuff */
 
-ul {
-  list-style-type: '- ';
-}
-
 #notification-message {
   /* div */
   position: fixed;

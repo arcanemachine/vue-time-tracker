@@ -1,5 +1,5 @@
 <template>
-<div class="mt-4 mb-4">
+<div class="mt-6 mb-2">
 
   <span @click="showActivityCreatePanel = !showActivityCreatePanel"
         class="bold cursor-url"

@@ -1,5 +1,6 @@
 
 - daily totals
+  - debug the todayTimers computed property
 - weekly totals
 
 - move unnecessary values out of activity object
